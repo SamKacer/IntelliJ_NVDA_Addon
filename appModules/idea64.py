@@ -18,6 +18,8 @@ class EnhancedEditableText(EditableText):
 		"kb:control+alt+leftArrow" : "caret_moveByLine",
 		"kb:control+alt+rightArrow" : "caret_moveByLine",
 		"kb:control+y" : "caret_moveByLine",
+		"kb:f3" : "caret_moveByLine",
+		"kb:shift+f3" : "caret_moveByLine",
 	}
 
 class AppModule(appModuleHandler.AppModule):
