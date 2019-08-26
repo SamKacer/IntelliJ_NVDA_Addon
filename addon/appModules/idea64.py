@@ -4,6 +4,9 @@ import appModuleHandler
 import tones
 import controlTypes
 from editableText import EditableText
+from scriptHandler import script
+import ui
+import api
 
 class EnhancedEditableText(EditableText):
 	__gestures = {
@@ -27,4 +30,14 @@ class AppModule(appModuleHandler.AppModule):
 		if obj.role == controlTypes.ROLE_EDITABLETEXT:
 			clsList.insert(0, EnhancedEditableText)
 	
-	
+	@script(gesture = 'kb:NVDA+i')
+	def script_readStatusBar(self, gesture):
+		obj = api.getForegroundObject().simpleFirstChild
+		tones.beep(550,50)
+		while obj is not None:
+			if obj.role is controlTypes.ROLE_STATUSBAR:
+				msg = obj.simpleFirstChild.name
+				ui.message(msg)
+				return
+			obj = obj.simpleNext
+		ui.message('couldnt find status bar')
