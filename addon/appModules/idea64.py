@@ -3,12 +3,12 @@
 import appModuleHandler
 import tones
 import controlTypes
-from editableText import EditableText
+from editableText import EditableTextWithoutAutoSelectDetection
 from scriptHandler import script
 import ui
 import api
 
-class EnhancedEditableText(EditableText):
+class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 	__gestures = {
 		# these IntelliJ commands change caret position, so they should trigger reading new line position
 		"kb:alt+downArrow" : "caret_moveByLine",
@@ -23,7 +23,12 @@ class EnhancedEditableText(EditableText):
 		"kb:control+y" : "caret_moveByLine",
 		"kb:f3" : "caret_moveByLine",
 		"kb:shift+f3" : "caret_moveByLine",
+		# these gestures trigger selection change
+		"kb:control+w": "caret_changeSelection",
+		"kb:control+shift+w": "caret_changeSelection",
 	}
+
+	
 
 class AppModule(appModuleHandler.AppModule):
 	def chooseNVDAObjectOverlayClasses(self, obj, clsList):
