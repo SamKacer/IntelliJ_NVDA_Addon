@@ -13,8 +13,8 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 		# these IntelliJ commands change caret position, so they should trigger reading new line position
 		"kb:alt+downArrow" : "caret_moveByLine",
 		"kb:alt+upArrow" : "caret_moveByLine",
-		"kb:control+leftBracket" : "caret_moveByLine",
-		"kb:control+rightBracket" : "caret_moveByLine",
+		"kb:control+[" : "caret_moveByLine",
+		"kb:control+]" : "caret_moveByLine",
 		"kb:f2" : "caret_moveByLine",
 		"kb:shift+f2" : "caret_moveByLine",
 		"kb:control+b" : "caret_moveByLine",
@@ -23,9 +23,16 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 		"kb:control+y" : "caret_moveByLine",
 		"kb:f3" : "caret_moveByLine",
 		"kb:shift+f3" : "caret_moveByLine",
+		"kb:control+u" : "caret_moveByLine",
+		"kb:control+shift+backspace" : "caret_moveByLine",
+		"kb:control+/" : "caret_moveByLine",
+		"kb:alt+j" : "caret_moveByLine",
 		# these gestures trigger selection change
 		"kb:control+w": "caret_changeSelection",
 		"kb:control+shift+w": "caret_changeSelection",
+		"kb:alt+shift+j": "caret_changeSelection",
+		"kb:control+shift+[": "caret_changeSelection",
+		"kb:control+shift+]": "caret_changeSelection",
 	}
 
 	
