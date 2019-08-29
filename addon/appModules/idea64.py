@@ -7,6 +7,7 @@ from editableText import EditableTextWithoutAutoSelectDetection
 from scriptHandler import script
 import ui
 import api
+from winsound import PlaySound, SND_ASYNC, SND_ALIAS
 
 class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 	__gestures = {
@@ -34,6 +35,11 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 		"kb:control+shift+[": "caret_changeSelection",
 		"kb:control+shift+]": "caret_changeSelection",
 	}
+
+	shouldFireCaretMovementFailedEvents = True
+
+	def event_caretMovementFailed(self):
+		PlaySound('SystemExclamation', SND_ASYNC | SND_ALIAS)
 
 	
 
