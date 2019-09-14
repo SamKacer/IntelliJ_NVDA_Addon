@@ -28,6 +28,8 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 		"kb:control+shift+backspace" : "caret_moveByLine",
 		"kb:control+/" : "caret_moveByLine",
 		"kb:alt+j" : "caret_moveByLine",
+		"kb:alt+control+downArrow" : "caret_moveByLine",
+		"kb:alt+control+upArrow" : "caret_moveByLine",
 		# these gestures trigger selection change
 		"kb:control+w": "caret_changeSelection",
 		"kb:control+shift+w": "caret_changeSelection",
