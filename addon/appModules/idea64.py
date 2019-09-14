@@ -59,3 +59,12 @@ class AppModule(appModuleHandler.AppModule):
 				return
 			obj = obj.simpleNext
 		ui.message('couldnt find status bar')
+	
+	def event_gainFocus(self, obj, nh):
+		# for naming unnamed list items
+		# list items tend not to have name attr, but their child or grandchild usually have the relevant name
+		child = obj.simpleFirstChild
+		if obj.role is controlTypes.ROLE_LISTITEM and not obj.name and child:
+			if child.name: obj.name = child.name
+			elif child.simpleFirstChild.name: obj.name = child.simpleFirstChild.name
+		nh()
