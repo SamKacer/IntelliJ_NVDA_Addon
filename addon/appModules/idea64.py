@@ -40,7 +40,7 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 
 	shouldFireCaretMovementFailedEvents = True
 
-	def event_caretMovementFailed(self):
+	def event_caretMovementFailed(self, gesture):
 		PlaySound('SystemExclamation', SND_ASYNC | SND_ALIAS)
 
 	
