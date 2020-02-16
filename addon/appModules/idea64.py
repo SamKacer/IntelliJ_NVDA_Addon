@@ -1,4 +1,8 @@
 # IntelliJ Support App Module for NVDA
+#Copyright (C) 2019-2020 Samuel Kacer
+#GNU GENERAL PUBLIC LICENSE V2
+#Author: Samuel Kacer <samuel.kacer@gmail.com>
+#https://github.com/SamKacer/IntelliJ_NVDA_Addon
 
 import appModuleHandler
 import tones
