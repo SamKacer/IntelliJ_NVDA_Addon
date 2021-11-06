@@ -3,12 +3,11 @@ Addon for NVDA that adds support for using IntelliJ.
 Current features are:
 * when caret moves to different line, the line at the new position is read out
 * when selection changes it is read out
-* list items are properly read out instead of having empty labels
+* command to read status bar (NVDA + I)
 
 ## How to install
-1. zip contents of addon folder into single archive
-2. change .zip extension to .NVDA-addon so the file has name like intellij.NVDA-addon
-3. install like a normal addon by opening it with NVDA (should open with NVDA by default)
+1. Download latest release or build by running scons
+2. install like a normal addon by opening the generated addon file with NVDA (should open with NVDA by default)
 
 ## Tips for using IntelliJ
 ### Checking errors/warnings
