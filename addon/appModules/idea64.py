@@ -8,7 +8,9 @@ import appModuleHandler
 import tones
 import controlTypes
 from editableText import EditableTextWithoutAutoSelectDetection
+from logHandler import log
 from scriptHandler import script
+import speech
 import ui
 import api
 import threading
@@ -79,11 +81,15 @@ class AppModule(appModuleHandler.AppModule):
 class StatusBarWatcher(threading.Thread):
 	ERROR_FOUND_TONE = 1000
 	ERROR_FIXED_TONE = 2000
+	sleepDuration = 0.25
 
-	def __init__(self):
+	def __init__(self, beepOnError=True, speakOnError=True, interruptSpeech=False):
 		super(StatusBarWatcher, self).__init__()
 		self.stopped = False
 		self._lastText = ""
+		self.beepOnError = beepOnError
+		self.speakOnError = speakOnError
+		self.interruptSpeech = interruptSpeech
 
 	def _statusBarFound(self, obj):
 		# Don't use simpleFirstChild here since we need to know wether the error is fixed
@@ -93,28 +99,37 @@ class StatusBarWatcher(threading.Thread):
 		msg = obj.firstChild.name
 
 		if self._lastText != msg:
-			tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
+			if self.beepOnError:
+				tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
 
-			if msg:
+			if msg and self.speakOnError:
+				if self.interruptSpeech:
+					speech.cancelSpeech()
+
 				ui.message(msg)
 
 			self._lastText = msg
 
+	def _runLoopIteration(self):
+		obj = api.getForegroundObject()
+
+		if obj is None or not obj.appModule.appName == "idea64":
+			# Ignore cases nvda is lost
+			return
+
+		obj = obj.simpleFirstChild
+
+		while obj is not None:
+			if obj.role is controlTypes.ROLE_STATUSBAR:
+				self._statusBarFound(obj)
+				break
+
+			obj = obj.simpleNext
+
 	def run(self):
 		while not self.stopped:
-			obj = api.getForegroundObject()
-
-			if obj is None:
-				# Ignore cases nvda is lost
-				time.sleep(0.25)
-				continue
-
-			obj = obj.simpleFirstChild
-
-			while obj is not None:
-				if obj.role is controlTypes.ROLE_STATUSBAR:
-					self._statusBarFound(obj)
-					break
-
-				obj = obj.simpleNext
-			time.sleep(0.25)
+			try:
+				self._runLoopIteration()
+			except Exception as error:
+				log.warn("Error on watcher thread: %s" % error)
+			time.sleep(self.sleepDuration)
