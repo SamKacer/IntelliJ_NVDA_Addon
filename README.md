@@ -1,8 +1,10 @@
 # IntelliJ_NVDA_Addon
 Addon for NVDA that adds support for using IntelliJ.
 Current features are:
+
 * when caret moves to different line, the line at the new position is read out
 * when selection changes it is read out
+* when there is an error on the current line, NVDA beeps and speaks it
 * command to read status bar (NVDA + I)
 
 ## How to install
