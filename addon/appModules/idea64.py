@@ -5,8 +5,6 @@
 #https://github.com/SamKacer/IntelliJ_NVDA_Addon
 
 from dataclasses import dataclass
-from email.errors import BoundaryError
-from mimetypes import init
 import appModuleHandler
 import tones
 import controlTypes
@@ -166,10 +164,7 @@ class StatusBarWatcher(threading.Thread):
 				tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
 
 			if msg and vars.speakOnError:
-				if vars.interruptSpeech:
-					speech.cancelSpeech()
-
-				ui.message(msg)
+				ui.message(msg, speechPriority= speech.Spri.NOW if vars.interruptSpeech else None)
 
 			self._lastText = msg
 
