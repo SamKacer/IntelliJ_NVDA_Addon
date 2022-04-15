@@ -4,11 +4,17 @@
 #Author: Samuel Kacer <samuel.kacer@gmail.com>
 #https://github.com/SamKacer/IntelliJ_NVDA_Addon
 
+from dataclasses import dataclass
+from email.errors import BoundaryError
+from mimetypes import init
 import appModuleHandler
 import tones
 import controlTypes
+import config
 from editableText import EditableTextWithoutAutoSelectDetection
 from logHandler import log
+import gui
+from gui.settingsDialogs import SettingsPanel
 from scriptHandler import script
 import speech
 import ui
@@ -16,6 +22,63 @@ import api
 import threading
 import time
 from winsound import PlaySound, SND_ASYNC, SND_ALIAS
+import wx
+
+
+CONF_KEY = 'intellij'
+BEEP_ON_ERROR_KEY = 'beepOnError'
+SPEAK_ON_ERROR_KEY = 'speakError'
+INTERRUPT_ON_ERROR_KEY = 'interruptOnError'
+
+config.conf.spec[CONF_KEY] = {
+	BEEP_ON_ERROR_KEY : 'boolean()',
+	SPEAK_ON_ERROR_KEY : 'boolean()',
+	INTERRUPT_ON_ERROR_KEY : 'boolean()'
+}
+
+class IntelliJAddonSettings(SettingsPanel):
+	title = "IntelliJ Improved"
+
+	def makeSettings(self, settingsSizer):
+		sHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
+		conf = config.conf[CONF_KEY]
+		self.beepOnError= sHelper.addItem(wx.CheckBox(self, label="Beep on status bar changes"))
+		self.beepOnError.SetValue(conf[BEEP_ON_ERROR_KEY])
+		self.speakOnError = sHelper.addItem(wx.CheckBox(self, label="Automatically read status bar changes"))
+		self.speakOnError.SetValue(conf[SPEAK_ON_ERROR_KEY])
+		self.interruptSpeech = sHelper.addItem(wx.CheckBox(self, label="Interrupt speech when automatically reading status bar changes"))
+		self.interruptSpeech.SetValue(conf[INTERRUPT_ON_ERROR_KEY])
+
+	def onSave(self):
+		conf = config.conf[CONF_KEY]
+		conf[BEEP_ON_ERROR_KEY] = self.beepOnError.Value
+		conf[SPEAK_ON_ERROR_KEY] = self.speakOnError.Value
+		conf[INTERRUPT_ON_ERROR_KEY] = self.interruptSpeech.Value
+		setGlobalVars()
+
+@dataclass
+class Vars:
+	beepOnError: bool = True
+	speakOnError: bool = True
+	interruptSpeech: bool = False
+
+vars = Vars()
+
+def setGlobalVars():
+	conf = config.conf[CONF_KEY]
+	vars.beepOnError = conf[BEEP_ON_ERROR_KEY]
+	vars.speakOnError = conf[SPEAK_ON_ERROR_KEY]
+	vars.interruptSpeech = conf[INTERRUPT_ON_ERROR_KEY]
+
+# sQet conf in case vars not set yet
+# def init_config():
+	# conf = config.conf.get(CONF_KEY, dict())
+	# conf[BEEP_ON_ERROR_KEY] = conf.get(BEEP_ON_ERROR_KEY, vars.beepOnError)
+	# conf[SPEAK_ON_ERROR_KEY] = conf.get(SPEAK_ON_ERROR_KEY, vars.speakOnError)
+	# conf[INTERRUPT_ON_ERROR_KEY] = conf.get(INTERRUPT_ON_ERROR_KEY, vars.interruptSpeech)
+	# config.conf[CONF_KEY] = conf
+# init_config()
+setGlobalVars()
 
 class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 	__gestures = {
@@ -56,11 +119,14 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 class AppModule(appModuleHandler.AppModule):
 	def __init__(self, pid, appName=None):
 		super(AppModule, self).__init__(pid, appName)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(IntelliJAddonSettings)
 		self.watcher = StatusBarWatcher()
 		self.watcher.start()
 
 	def terminate(self):
 		self.watcher.stopped = True
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(IntelliJAddonSettings)
+
 
 	def chooseNVDAObjectOverlayClasses(self, obj, clsList):
 		if obj.role == controlTypes.ROLE_EDITABLETEXT:
@@ -83,13 +149,10 @@ class StatusBarWatcher(threading.Thread):
 	ERROR_FIXED_TONE = 2000
 	sleepDuration = 0.25
 
-	def __init__(self, beepOnError=True, speakOnError=True, interruptSpeech=False):
+	def __init__(self):
 		super(StatusBarWatcher, self).__init__()
 		self.stopped = False
 		self._lastText = ""
-		self.beepOnError = beepOnError
-		self.speakOnError = speakOnError
-		self.interruptSpeech = interruptSpeech
 
 	def _statusBarFound(self, obj):
 		# Don't use simpleFirstChild here since we need to know wether the error is fixed
@@ -99,11 +162,11 @@ class StatusBarWatcher(threading.Thread):
 		msg = obj.firstChild.name
 
 		if self._lastText != msg:
-			if self.beepOnError:
+			if vars.beepOnError:
 				tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
 
-			if msg and self.speakOnError:
-				if self.interruptSpeech:
+			if msg and vars.speakOnError:
+				if vars.interruptSpeech:
 					speech.cancelSpeech()
 
 				ui.message(msg)
