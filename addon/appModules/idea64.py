@@ -118,7 +118,8 @@ class AppModule(appModuleHandler.AppModule):
 	def __init__(self, pid, appName=None):
 		super(AppModule, self).__init__(pid, appName)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(IntelliJAddonSettings)
-		self.watcher = StatusBarWatcher()
+		self.status = None
+		self.watcher = StatusBarWatcher(self)
 		self.watcher.start()
 
 	def terminate(self):
@@ -132,25 +133,32 @@ class AppModule(appModuleHandler.AppModule):
 	
 	@script(gesture = 'kb:NVDA+i')
 	def script_readStatusBar(self, gesture):
-		obj = api.getForegroundObject().simpleFirstChild
-		tones.beep(550,50)
-		while obj is not None:
-			if obj.role is controlTypes.ROLE_STATUSBAR:
-				msg = obj.simpleFirstChild.name
-				ui.message(msg)
-				return
-			obj = obj.simpleNext
-		ui.message('couldnt find status bar')
+		if self.status:
+			obj = self.status
+		else:
+			obj = api.getForegroundObject().simpleFirstChild
+			tones.beep(550,50)
+			while obj is not None:
+				if obj.role is controlTypes.ROLE_STATUSBAR:
+					self.status = obj
+					break
+				obj = obj.simpleNext
+		if obj is None:
+			ui.message('couldnt find status bar')
+		else:
+			msg = obj.simpleFirstChild.name
+			ui.message(msg)
 
 class StatusBarWatcher(threading.Thread):
 	ERROR_FOUND_TONE = 1000
 	ERROR_FIXED_TONE = 2000
 	sleepDuration = 0.25
 
-	def __init__(self):
+	def __init__(self, addon):
 		super(StatusBarWatcher, self).__init__()
 		self.stopped = False
 		self._lastText = ""
+		self.addon = addon
 
 	def _statusBarFound(self, obj):
 		# Don't use simpleFirstChild here since we need to know wether the error is fixed
@@ -169,20 +177,26 @@ class StatusBarWatcher(threading.Thread):
 			self._lastText = msg
 
 	def _runLoopIteration(self):
-		obj = api.getForegroundObject()
+		if self.addon.status:
+			obj = self.addon.status
+		else:
+			obj = api.getForegroundObject()
 
-		if obj is None or not obj.appModule.appName == "idea64":
-			# Ignore cases nvda is lost
-			return
+			if obj is None or not obj.appModule.appName == "idea64":
+				# Ignore cases nvda is lost
+				return
 
-		obj = obj.simpleFirstChild
+			obj = obj.simpleFirstChild
 
-		while obj is not None:
-			if obj.role is controlTypes.ROLE_STATUSBAR:
-				self._statusBarFound(obj)
-				break
+			while obj is not None:
+				if obj.role is controlTypes.ROLE_STATUSBAR:
+					self.addon.status = obj
+					break
 
-			obj = obj.simpleNext
+				obj = obj.simpleNext
+
+		if obj:
+			self._statusBarFound(obj)
 
 	def run(self):
 		while not self.stopped:
