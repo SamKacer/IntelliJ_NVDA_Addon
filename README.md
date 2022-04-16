@@ -4,7 +4,9 @@ Current features are:
 
 * when caret moves to different line, the line at the new position is read out
 * when selection changes it is read out
-* when there is an error on the current line, NVDA beeps and speaks it
+* when the status bar text has changed, NVDA beeps and speaks it
+  * this includes reading the error description if the caret landed on one
+  * configurable in settings
 * command to read status bar (NVDA + I)
 
 ## How to install
@@ -16,7 +18,8 @@ Current features are:
 When focused inside a file editor:
 * F2/ shift + F2 : go to next/previous error or warning
 When editor cursor is on error/warning:
-* ctrl + F1: show error description
+* NVDA  + I: Quickly read error description dislayed in status bar
+* ctrl + F1: show more detailed error description
 * alt + enter: open list of quick actions
 
 ### Navigating
@@ -42,3 +45,8 @@ inside editor:
 * ctrl + alt + L: format code
 * alt + F7: find usages
 * alt + shift + F9: open run dialogue (note: if editor caret is on unit test, this will also autogenerate a run configuration for running that specific test case)
+
+## Changelog
+### Version 1.3.0
+* added feature for automatically reading errors and other status bar changes (thanks to Thiago @thgcode for the contribution!)
+* reading status bar with NVDA + I is much faster

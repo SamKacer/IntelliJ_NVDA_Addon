@@ -25,14 +25,14 @@ import wx
 
 
 CONF_KEY = 'intellij'
-BEEP_ON_ERROR_KEY = 'beepOnError'
-SPEAK_ON_ERROR_KEY = 'speakError'
-INTERRUPT_ON_ERROR_KEY = 'interruptOnError'
+BEEP_ON_STATUS_CHANGED_KEY = 'beepOnError'
+SPEAK_ON_STATUS_CHANGED_KEY = 'speakError'
+INTERRUPT_SPEECH_KEY = 'interruptOnError'
 
 config.conf.spec[CONF_KEY] = {
-	BEEP_ON_ERROR_KEY : 'boolean()',
-	SPEAK_ON_ERROR_KEY : 'boolean()',
-	INTERRUPT_ON_ERROR_KEY : 'boolean()'
+	BEEP_ON_STATUS_CHANGED_KEY : 'boolean()',
+	SPEAK_ON_STATUS_CHANGED_KEY : 'boolean()',
+	INTERRUPT_SPEECH_KEY : 'boolean()'
 }
 
 class IntelliJAddonSettings(SettingsPanel):
@@ -41,33 +41,33 @@ class IntelliJAddonSettings(SettingsPanel):
 	def makeSettings(self, settingsSizer):
 		sHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 		conf = config.conf[CONF_KEY]
-		self.beepOnError= sHelper.addItem(wx.CheckBox(self, label="Beep on status bar changes"))
-		self.beepOnError.SetValue(conf[BEEP_ON_ERROR_KEY])
-		self.speakOnError = sHelper.addItem(wx.CheckBox(self, label="Automatically read status bar changes"))
-		self.speakOnError.SetValue(conf[SPEAK_ON_ERROR_KEY])
+		self.beepOnChange= sHelper.addItem(wx.CheckBox(self, label="Beep on status bar changes"))
+		self.beepOnChange.SetValue(conf[BEEP_ON_STATUS_CHANGED_KEY])
+		self.speakOnChange = sHelper.addItem(wx.CheckBox(self, label="Automatically read status bar changes"))
+		self.speakOnChange.SetValue(conf[SPEAK_ON_STATUS_CHANGED_KEY])
 		self.interruptSpeech = sHelper.addItem(wx.CheckBox(self, label="Interrupt speech when automatically reading status bar changes"))
-		self.interruptSpeech.SetValue(conf[INTERRUPT_ON_ERROR_KEY])
+		self.interruptSpeech.SetValue(conf[INTERRUPT_SPEECH_KEY])
 
 	def onSave(self):
 		conf = config.conf[CONF_KEY]
-		conf[BEEP_ON_ERROR_KEY] = self.beepOnError.Value
-		conf[SPEAK_ON_ERROR_KEY] = self.speakOnError.Value
-		conf[INTERRUPT_ON_ERROR_KEY] = self.interruptSpeech.Value
+		conf[BEEP_ON_STATUS_CHANGED_KEY] = self.beepOnChange.Value
+		conf[SPEAK_ON_STATUS_CHANGED_KEY] = self.speakOnChange.Value
+		conf[INTERRUPT_SPEECH_KEY] = self.interruptSpeech.Value
 		setGlobalVars()
 
 @dataclass
 class Vars:
-	beepOnError: bool = True
-	speakOnError: bool = True
+	beepOnChange: bool = True
+	speakOnChange: bool = True
 	interruptSpeech: bool = False
 
 vars = Vars()
 
 def setGlobalVars():
 	conf = config.conf[CONF_KEY]
-	vars.beepOnError = conf[BEEP_ON_ERROR_KEY]
-	vars.speakOnError = conf[SPEAK_ON_ERROR_KEY]
-	vars.interruptSpeech = conf[INTERRUPT_ON_ERROR_KEY]
+	vars.beepOnChange = conf[BEEP_ON_STATUS_CHANGED_KEY]
+	vars.speakOnChange = conf[SPEAK_ON_STATUS_CHANGED_KEY]
+	vars.interruptSpeech = conf[INTERRUPT_SPEECH_KEY]
 
 # sQet conf in case vars not set yet
 # def init_config():
@@ -165,9 +165,9 @@ class AppModule(appModuleHandler.AppModule):
 
 	@script("Toggle beeping when the status bar changes", category="IntelliJ")
 	def script_toggleBeepOnStatusBarChange(self, gesture):
-		newVal = not vars.beepOnError
-		config.conf[CONF_KEY][BEEP_ON_ERROR_KEY] = newVal
-		vars.beepOnError = newVal
+		newVal = not vars.beepOnChange
+		config.conf[CONF_KEY][BEEP_ON_STATUS_CHANGED_KEY] = newVal
+		vars.beepOnChange = newVal
 		if newVal:
 			ui.message("Enabled beeping on status bar change")
 		else:
@@ -175,9 +175,9 @@ class AppModule(appModuleHandler.AppModule):
 
 	@script("Toggle automatically reading status bar changes", category="IntelliJ")
 	def script_toggleSpeakOnStatusChanged(self, gesture):
-		newVal = not vars.speakOnError
-		config.conf[CONF_KEY][SPEAK_ON_ERROR_KEY] = newVal
-		vars.speakOnError = newVal
+		newVal = not vars.speakOnChange
+		config.conf[CONF_KEY][SPEAK_ON_STATUS_CHANGED_KEY] = newVal
+		vars.speakOnChange = newVal
 		if newVal:
 			ui.message("Enabled automatically reading status bar changes")
 		else:
@@ -186,7 +186,7 @@ class AppModule(appModuleHandler.AppModule):
 	@script("Toggle interrupting speech when automatically reading status bar changes", category="IntelliJ")
 	def script_toggleInterruptSpeech(self, gesture):
 		newVal = not vars.interruptSpeech
-		config.conf[CONF_KEY][INTERRUPT_ON_ERROR_KEY] = newVal
+		config.conf[CONF_KEY][INTERRUPT_SPEECH_KEY] = newVal
 		vars.interruptSpeech = newVal
 		if newVal:
 			ui.message("Enabled interrupting speech while automatically reading status bar changes")
@@ -213,10 +213,10 @@ class StatusBarWatcher(threading.Thread):
 		msg = obj.firstChild.name
 
 		if self._lastText != msg:
-			if vars.beepOnError:
+			if vars.beepOnChange:
 				tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
 
-			if msg and vars.speakOnError:
+			if msg and vars.speakOnChange:
 				ui.message(msg, speechPriority= speech.Spri.NOW if vars.interruptSpeech else None)
 
 			self._lastText = msg
