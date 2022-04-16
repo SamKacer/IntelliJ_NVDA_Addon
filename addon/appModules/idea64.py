@@ -133,21 +133,31 @@ class AppModule(appModuleHandler.AppModule):
 	
 	@script(gesture = 'kb:NVDA+i')
 	def script_readStatusBar(self, gesture):
-		if self.status:
-			obj = self.status
+		status = self.getStatusBar()
+		if status is None:
+			ui.message('couldnt find status bar')
 		else:
-			obj = api.getForegroundObject().simpleFirstChild
-			tones.beep(550,50)
+			msg = status.simpleFirstChild.name
+			ui.message(msg)
+
+	def getStatusBar(self):
+		if self.status:
+			return self.status
+		else:
+			obj = api.getForegroundObject()
+			if obj is None or not obj.appModule.appName == "idea64":
+				# Ignore cases nvda is lost
+				return
+
+			obj = obj.simpleFirstChild
 			while obj is not None:
 				if obj.role is controlTypes.ROLE_STATUSBAR:
 					self.status = obj
 					break
+
 				obj = obj.simpleNext
-		if obj is None:
-			ui.message('couldnt find status bar')
-		else:
-			msg = obj.simpleFirstChild.name
-			ui.message(msg)
+
+			return obj
 
 class StatusBarWatcher(threading.Thread):
 	ERROR_FOUND_TONE = 1000
@@ -177,26 +187,9 @@ class StatusBarWatcher(threading.Thread):
 			self._lastText = msg
 
 	def _runLoopIteration(self):
-		if self.addon.status:
-			obj = self.addon.status
-		else:
-			obj = api.getForegroundObject()
-
-			if obj is None or not obj.appModule.appName == "idea64":
-				# Ignore cases nvda is lost
-				return
-
-			obj = obj.simpleFirstChild
-
-			while obj is not None:
-				if obj.role is controlTypes.ROLE_STATUSBAR:
-					self.addon.status = obj
-					break
-
-				obj = obj.simpleNext
-
-		if obj:
-			self._statusBarFound(obj)
+		status = self.addon.getStatusBar()
+		if status:
+			self._statusBarFound(status)
 
 	def run(self):
 		while not self.stopped:
