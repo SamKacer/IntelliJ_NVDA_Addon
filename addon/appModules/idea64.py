@@ -5,6 +5,7 @@
 #https://github.com/SamKacer/IntelliJ_NVDA_Addon
 
 from dataclasses import dataclass
+from unicodedata import category
 import appModuleHandler
 import tones
 import controlTypes
@@ -131,7 +132,10 @@ class AppModule(appModuleHandler.AppModule):
 		if obj.role == controlTypes.ROLE_EDITABLETEXT:
 			clsList.insert(0, EnhancedEditableText)
 	
-	@script(gesture = 'kb:NVDA+i')
+	@script(
+		"Read the status bar",
+		gesture = 'kb:NVDA+i',
+		category="IntelliJ")
 	def script_readStatusBar(self, gesture):
 		status = self.getStatusBar()
 		if status is None:
@@ -158,6 +162,37 @@ class AppModule(appModuleHandler.AppModule):
 				obj = obj.simpleNext
 
 			return obj
+
+	@script("Toggle beeping when the status bar changes", category="IntelliJ")
+	def script_toggleBeepOnStatusBarChange(self, gesture):
+		newVal = not vars.beepOnError
+		config.conf[CONF_KEY][BEEP_ON_ERROR_KEY] = newVal
+		vars.beepOnError = newVal
+		if newVal:
+			ui.message("Enabled beeping on status bar change")
+		else:
+			ui.message("Disabled beeping on status bar change")
+
+	@script("Toggle automatically reading status bar changes", category="IntelliJ")
+	def script_toggleSpeakOnStatusChanged(self, gesture):
+		newVal = not vars.speakOnError
+		config.conf[CONF_KEY][SPEAK_ON_ERROR_KEY] = newVal
+		vars.speakOnError = newVal
+		if newVal:
+			ui.message("Enabled automatically reading status bar changes")
+		else:
+			ui.message("Disabled automatically reading status bar changes")
+
+	@script("Toggle interrupting speech when automatically reading status bar changes", category="IntelliJ")
+	def script_toggleInterruptSpeech(self, gesture):
+		newVal = not vars.interruptSpeech
+		config.conf[CONF_KEY][INTERRUPT_ON_ERROR_KEY] = newVal
+		vars.interruptSpeech = newVal
+		if newVal:
+			ui.message("Enabled interrupting speech while automatically reading status bar changes")
+		else:
+			ui.message("Disabled interrupting speech while automatically reading status bar changes")
+
 
 class StatusBarWatcher(threading.Thread):
 	ERROR_FOUND_TONE = 1000
