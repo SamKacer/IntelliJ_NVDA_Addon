@@ -144,8 +144,8 @@ class AppModule(appModuleHandler.AppModule):
 			msg = status.simpleFirstChild.name
 			ui.message(msg)
 
-	def getStatusBar(self):
-		if self.status:
+	def getStatusBar(self, refresh: bool = False):
+		if self.status and not refresh:
 			return self.status
 		else:
 			obj = api.getForegroundObject()
@@ -198,12 +198,14 @@ class StatusBarWatcher(threading.Thread):
 	ERROR_FOUND_TONE = 1000
 	ERROR_FIXED_TONE = 2000
 	sleepDuration = 0.25
+	refreshInterval = 5 # seconds
 
 	def __init__(self, addon):
 		super(StatusBarWatcher, self).__init__()
 		self.stopped = False
 		self._lastText = ""
 		self.addon = addon
+		self.lastRefresh = time.time()
 
 	def _statusBarFound(self, obj):
 		# Don't use simpleFirstChild here since we need to know wether the error is fixed
@@ -222,7 +224,11 @@ class StatusBarWatcher(threading.Thread):
 			self._lastText = msg
 
 	def _runLoopIteration(self):
-		status = self.addon.getStatusBar()
+		now = time.time()
+		refresh = now - self.lastRefresh > self.refreshInterval
+		if refresh:
+			self.lastRefresh = now
+		status = self.addon.getStatusBar(refresh)
 		if status:
 			self._statusBarFound(status)
 
