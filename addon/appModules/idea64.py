@@ -29,10 +29,14 @@ BEEP_ON_STATUS_CHANGED_KEY = 'beepOnError'
 SPEAK_ON_STATUS_CHANGED_KEY = 'speakError'
 INTERRUPT_SPEECH_KEY = 'interruptOnError'
 
+DEFAULT_BEEP_ON_CHANGE = True
+DEFAULT_SPEAK_ON_CHANGE = True
+DEFAULT_INTERRUPT_SPEECH = False
+
 config.conf.spec[CONF_KEY] = {
-	BEEP_ON_STATUS_CHANGED_KEY : 'boolean()',
-	SPEAK_ON_STATUS_CHANGED_KEY : 'boolean()',
-	INTERRUPT_SPEECH_KEY : 'boolean()'
+	BEEP_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_BEEP_ON_CHANGE})',
+	SPEAK_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_SPEAK_ON_CHANGE})',
+	INTERRUPT_SPEECH_KEY : f'boolean(default={DEFAULT_INTERRUPT_SPEECH})'
 }
 
 class IntelliJAddonSettings(SettingsPanel):
@@ -57,9 +61,9 @@ class IntelliJAddonSettings(SettingsPanel):
 
 @dataclass
 class Vars:
-	beepOnChange: bool = True
-	speakOnChange: bool = True
-	interruptSpeech: bool = False
+	beepOnChange: bool = DEFAULT_BEEP_ON_CHANGE
+	speakOnChange: bool = DEFAULT_SPEAK_ON_CHANGE
+	interruptSpeech: bool = DEFAULT_INTERRUPT_SPEECH
 
 vars = Vars()
 
@@ -69,14 +73,9 @@ def setGlobalVars():
 	vars.speakOnChange = conf[SPEAK_ON_STATUS_CHANGED_KEY]
 	vars.interruptSpeech = conf[INTERRUPT_SPEECH_KEY]
 
-# sQet conf in case vars not set yet
-# def init_config():
-	# conf = config.conf.get(CONF_KEY, dict())
-	# conf[BEEP_ON_ERROR_KEY] = conf.get(BEEP_ON_ERROR_KEY, vars.beepOnError)
-	# conf[SPEAK_ON_ERROR_KEY] = conf.get(SPEAK_ON_ERROR_KEY, vars.speakOnError)
-	# conf[INTERRUPT_ON_ERROR_KEY] = conf.get(INTERRUPT_ON_ERROR_KEY, vars.interruptSpeech)
-	# config.conf[CONF_KEY] = conf
-# init_config()
+# initialize conf in case being run for the first time
+if config.conf.get(CONF_KEY) is None:
+	config.conf[CONF_KEY] = {}
 setGlobalVars()
 
 class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
