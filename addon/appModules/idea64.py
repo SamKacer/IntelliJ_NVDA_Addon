@@ -211,6 +211,7 @@ class AppModule(appModuleHandler.AppModule):
 
 class StatusBarWatcher(threading.Thread):
 	ERROR_FOUND_TONE = 1000
+	AFTER_TONE = 800
 	ERROR_FIXED_TONE = 2000
 	sleepDuration = 0.25
 	refreshInterval = 5 # seconds
@@ -234,7 +235,13 @@ class StatusBarWatcher(threading.Thread):
 				tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
 
 			if msg and vars.speakOnChange:
-				ui.message(msg, speechPriority= speech.Spri.NOW if vars.interruptSpeech else None)
+				seq = []
+				if vars.beepBeforeReading:
+					seq.append(speech.commands.BeepCommand(StatusBarWatcher.ERROR_FOUND_TONE, 50))
+				seq.append(msg)
+				if vars.beepAfterReading:
+					seq.append(speech.commands.BeepCommand(StatusBarWatcher.AFTER_TONE, 50))
+				speech.speak(seq, priority= speech.Spri.NOW if vars.interruptSpeech else speech.Spri.NORMAL)
 
 			self._lastText = msg
 
