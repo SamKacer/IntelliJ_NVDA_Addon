@@ -28,15 +28,21 @@ CONF_KEY = 'intellij'
 BEEP_ON_STATUS_CHANGED_KEY = 'beepOnError'
 SPEAK_ON_STATUS_CHANGED_KEY = 'speakError'
 INTERRUPT_SPEECH_KEY = 'interruptOnError'
+BEEP_BEFORE_READING_KEY = 'beepBeforeReading'
+BEEP_AFTER_READING_KEY = 'beepAfterReading'
 
 DEFAULT_BEEP_ON_CHANGE = True
 DEFAULT_SPEAK_ON_CHANGE = True
 DEFAULT_INTERRUPT_SPEECH = False
+DEFAULT_BEEP_BEFORE_READING = False
+DEFAULT_BEEP_AFTER_READING = False
 
 config.conf.spec[CONF_KEY] = {
 	BEEP_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_BEEP_ON_CHANGE})',
 	SPEAK_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_SPEAK_ON_CHANGE})',
-	INTERRUPT_SPEECH_KEY : f'boolean(default={DEFAULT_INTERRUPT_SPEECH})'
+	INTERRUPT_SPEECH_KEY : f'boolean(default={DEFAULT_INTERRUPT_SPEECH})',
+	BEEP_BEFORE_READING_KEY : f'boolean(default={DEFAULT_BEEP_BEFORE_READING})',
+	BEEP_AFTER_READING_KEY : f'boolean(default={DEFAULT_BEEP_AFTER_READING})'
 }
 
 class IntelliJAddonSettings(SettingsPanel):
@@ -49,6 +55,10 @@ class IntelliJAddonSettings(SettingsPanel):
 		self.beepOnChange.SetValue(conf[BEEP_ON_STATUS_CHANGED_KEY])
 		self.speakOnChange = sHelper.addItem(wx.CheckBox(self, label="Automatically read status bar changes"))
 		self.speakOnChange.SetValue(conf[SPEAK_ON_STATUS_CHANGED_KEY])
+		self.beepBeforeReading = sHelper.addItem(wx.CheckBox(self, label="Beep before status bar change is read"))
+		self.beepBeforeReading.SetValue(conf[BEEP_BEFORE_READING_KEY])
+		self.beepAfterReading = sHelper.addItem(wx.CheckBox(self, label="Beep after status bar change is read"))
+		self.beepAfterReading.SetValue(conf[BEEP_AFTER_READING_KEY])
 		self.interruptSpeech = sHelper.addItem(wx.CheckBox(self, label="Interrupt speech when automatically reading status bar changes"))
 		self.interruptSpeech.SetValue(conf[INTERRUPT_SPEECH_KEY])
 
@@ -57,6 +67,8 @@ class IntelliJAddonSettings(SettingsPanel):
 		conf[BEEP_ON_STATUS_CHANGED_KEY] = self.beepOnChange.Value
 		conf[SPEAK_ON_STATUS_CHANGED_KEY] = self.speakOnChange.Value
 		conf[INTERRUPT_SPEECH_KEY] = self.interruptSpeech.Value
+		conf[BEEP_BEFORE_READING_KEY] = self.beepBeforeReading.Value
+		conf[BEEP_AFTER_READING_KEY] = self.beepAfterReading.Value
 		setGlobalVars()
 
 @dataclass
@@ -64,6 +76,8 @@ class Vars:
 	beepOnChange: bool = DEFAULT_BEEP_ON_CHANGE
 	speakOnChange: bool = DEFAULT_SPEAK_ON_CHANGE
 	interruptSpeech: bool = DEFAULT_INTERRUPT_SPEECH
+	beepBeforeReading: bool = DEFAULT_BEEP_BEFORE_READING
+	beepAfterReading: bool = DEFAULT_BEEP_AFTER_READING
 
 vars = Vars()
 
@@ -72,6 +86,8 @@ def setGlobalVars():
 	vars.beepOnChange = conf[BEEP_ON_STATUS_CHANGED_KEY]
 	vars.speakOnChange = conf[SPEAK_ON_STATUS_CHANGED_KEY]
 	vars.interruptSpeech = conf[INTERRUPT_SPEECH_KEY]
+	vars.beepBeforeReading = conf[BEEP_BEFORE_READING_KEY]
+	vars.beepAfterReading = conf[BEEP_AFTER_READING_KEY]
 
 # initialize conf in case being run for the first time
 if config.conf.get(CONF_KEY) is None:
