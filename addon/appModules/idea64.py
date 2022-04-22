@@ -4,6 +4,7 @@
 #Author: Samuel Kacer <samuel.kacer@gmail.com>
 #https://github.com/SamKacer/IntelliJ_NVDA_Addon
 
+from buildVersion import version_year
 from dataclasses import dataclass
 from unicodedata import category
 import appModuleHandler
@@ -23,6 +24,13 @@ import time
 from winsound import PlaySound, SND_ASYNC, SND_ALIAS
 import wx
 
+# handle both pre and post 2022 controlTypes
+if version_year >= 2022:
+	EDITABLE_TEXT = controlTypes.Role.EDITABLETEXT
+	STATUSBAR = controlTypes.Role.STATUSBAR
+else:
+	EDITABLE_TEXT = controlTypes.ROLE_EDITABLETEXT
+	STATUSBAR = controlTypes.ROLE_STATUSBAR
 
 CONF_KEY = 'intellij'
 BEEP_ON_STATUS_CHANGED_KEY = 'beepOnError'
@@ -152,7 +160,7 @@ class AppModule(appModuleHandler.AppModule):
 
 
 	def chooseNVDAObjectOverlayClasses(self, obj, clsList):
-		if obj.role == controlTypes.ROLE_EDITABLETEXT:
+		if obj.role == EDITABLE_TEXT:
 			clsList.insert(0, EnhancedEditableText)
 	
 	@script(
@@ -178,7 +186,7 @@ class AppModule(appModuleHandler.AppModule):
 
 			obj = obj.simpleFirstChild
 			while obj is not None:
-				if obj.role is controlTypes.ROLE_STATUSBAR:
+				if obj.role == STATUSBAR:
 					self.status = obj
 					break
 
