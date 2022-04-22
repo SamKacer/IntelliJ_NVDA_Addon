@@ -210,11 +210,11 @@ class AppModule(appModuleHandler.AppModule):
 
 
 class StatusBarWatcher(threading.Thread):
-	ERROR_FOUND_TONE = 1000
+	STATUS_CHANGED_TONE = 1000
 	AFTER_TONE = 800
-	ERROR_FIXED_TONE = 2000
-	sleepDuration = 0.25
-	refreshInterval = 5 # seconds
+	STATUS_CLEARED_TONE = 2000
+	SLEEP_DURATION = 0.25
+	REFRESH_INTERVAL = 5 # seconds
 
 	def __init__(self, addon):
 		super(StatusBarWatcher, self).__init__()
@@ -232,12 +232,12 @@ class StatusBarWatcher(threading.Thread):
 
 		if self._lastText != msg:
 			if vars.beepOnChange:
-				tones.beep(self.ERROR_FOUND_TONE if msg else self.ERROR_FIXED_TONE, 50)
+				tones.beep(StatusBarWatcher.STATUS_CHANGED_TONE if msg else StatusBarWatcher.STATUS_CLEARED_TONE, 50)
 
 			if msg and vars.speakOnChange:
 				seq = []
 				if vars.beepBeforeReading:
-					seq.append(speech.commands.BeepCommand(StatusBarWatcher.ERROR_FOUND_TONE, 50))
+					seq.append(speech.commands.BeepCommand(StatusBarWatcher.STATUS_CHANGED_TONE, 50))
 				seq.append(msg)
 				if vars.beepAfterReading:
 					seq.append(speech.commands.BeepCommand(StatusBarWatcher.AFTER_TONE, 50))
@@ -247,7 +247,7 @@ class StatusBarWatcher(threading.Thread):
 
 	def _runLoopIteration(self):
 		now = time.time()
-		refresh = now - self.lastRefresh > self.refreshInterval
+		refresh = now - self.lastRefresh > StatusBarWatcher .REFRESH_INTERVAL
 		if refresh:
 			self.lastRefresh = now
 		status = self.addon.getStatusBar(refresh)
@@ -260,4 +260,4 @@ class StatusBarWatcher(threading.Thread):
 				self._runLoopIteration()
 			except Exception as error:
 				log.warn("Error on watcher thread: %s" % error)
-			time.sleep(self.sleepDuration)
+			time.sleep(StatusBarWatcher.SLEEP_DURATION)
