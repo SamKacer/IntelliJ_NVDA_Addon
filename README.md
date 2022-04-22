@@ -50,3 +50,4 @@ inside editor:
 ### Version 1.3.0
 * added feature for automatically reading errors and other status bar changes (thanks to Thiago @thgcode for the contribution!)
 * reading status bar with NVDA + I is much faster
+* compatible with NVDA 2022+
