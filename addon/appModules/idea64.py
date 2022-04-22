@@ -33,18 +33,18 @@ else:
 	STATUSBAR = controlTypes.ROLE_STATUSBAR
 
 CONF_KEY = 'intellij'
-BEEP_ON_STATUS_CHANGED_KEY = 'beepOnError'
+BEEP_ON_STATUS_CHANGED_KEY = 'beepOnStatusChange'
 BEEP_ON_STATUS_CLEARED_KEY = 'beepOnStatusCleared'
-SPEAK_ON_STATUS_CHANGED_KEY = 'speakError'
-INTERRUPT_SPEECH_KEY = 'interruptOnError'
-BEEP_BEFORE_READING_KEY = 'beepBeforeReading'
-BEEP_AFTER_READING_KEY = 'beepAfterReading'
+SPEAK_ON_STATUS_CHANGED_KEY = 'speakOnStatusChange'
+INTERRUPT_SPEECH_KEY = 'interruptOnStatusChange'
+BEEP_BEFORE_READING_KEY = 'beepBeforeReadingStatus'
+BEEP_AFTER_READING_KEY = 'beepAfterReadingStatus'
 
-DEFAULT_BEEP_ON_CHANGE = True
-DEFAULT_BEEP_ON_STATUS_CLEARED = True
+DEFAULT_BEEP_ON_CHANGE = False
+DEFAULT_BEEP_ON_STATUS_CLEARED = False
 DEFAULT_SPEAK_ON_CHANGE = True
 DEFAULT_INTERRUPT_SPEECH = False
-DEFAULT_BEEP_BEFORE_READING = False
+DEFAULT_BEEP_BEFORE_READING = True
 DEFAULT_BEEP_AFTER_READING = False
 
 config.conf.spec[CONF_KEY] = {
@@ -62,7 +62,7 @@ class IntelliJAddonSettings(SettingsPanel):
 	def makeSettings(self, settingsSizer):
 		sHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 		conf = config.conf[CONF_KEY]
-		self.beepOnChange= sHelper.addItem(wx.CheckBox(self, label="Beep on status bar changes"))
+		self.beepOnChange= sHelper.addItem(wx.CheckBox(self, label="Beep when status bar changes"))
 		self.beepOnChange.SetValue(conf[BEEP_ON_STATUS_CHANGED_KEY])
 		self.beepOnClear= sHelper.addItem(wx.CheckBox(self, label="Beep when status bar is cleared"))
 		self.beepOnClear.SetValue(conf[BEEP_ON_STATUS_CLEARED_KEY])
@@ -265,10 +265,10 @@ class StatusBarWatcher(threading.Thread):
 
 	def _runLoopIteration(self):
 		now = time.time()
-		refresh = now - self.lastRefresh > StatusBarWatcher .REFRESH_INTERVAL
-		if refresh:
+		shouldRefresh = now - self.lastRefresh > StatusBarWatcher .REFRESH_INTERVAL
+		if shouldRefresh:
 			self.lastRefresh = now
-		status = self.addon.getStatusBar(refresh)
+		status = self.addon.getStatusBar(refresh=shouldRefresh)
 		if status:
 			self._statusBarFound(status)
 
