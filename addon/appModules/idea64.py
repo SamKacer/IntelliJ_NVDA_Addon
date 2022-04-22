@@ -26,12 +26,14 @@ import wx
 
 CONF_KEY = 'intellij'
 BEEP_ON_STATUS_CHANGED_KEY = 'beepOnError'
+BEEP_ON_STATUS_CLEARED_KEY = 'beepOnStatusCleared'
 SPEAK_ON_STATUS_CHANGED_KEY = 'speakError'
 INTERRUPT_SPEECH_KEY = 'interruptOnError'
 BEEP_BEFORE_READING_KEY = 'beepBeforeReading'
 BEEP_AFTER_READING_KEY = 'beepAfterReading'
 
 DEFAULT_BEEP_ON_CHANGE = True
+DEFAULT_BEEP_ON_STATUS_CLEARED = True
 DEFAULT_SPEAK_ON_CHANGE = True
 DEFAULT_INTERRUPT_SPEECH = False
 DEFAULT_BEEP_BEFORE_READING = False
@@ -39,6 +41,7 @@ DEFAULT_BEEP_AFTER_READING = False
 
 config.conf.spec[CONF_KEY] = {
 	BEEP_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_BEEP_ON_CHANGE})',
+	BEEP_ON_STATUS_CLEARED_KEY : f'boolean(default={DEFAULT_BEEP_ON_STATUS_CLEARED})',
 	SPEAK_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_SPEAK_ON_CHANGE})',
 	INTERRUPT_SPEECH_KEY : f'boolean(default={DEFAULT_INTERRUPT_SPEECH})',
 	BEEP_BEFORE_READING_KEY : f'boolean(default={DEFAULT_BEEP_BEFORE_READING})',
@@ -53,6 +56,8 @@ class IntelliJAddonSettings(SettingsPanel):
 		conf = config.conf[CONF_KEY]
 		self.beepOnChange= sHelper.addItem(wx.CheckBox(self, label="Beep on status bar changes"))
 		self.beepOnChange.SetValue(conf[BEEP_ON_STATUS_CHANGED_KEY])
+		self.beepOnClear= sHelper.addItem(wx.CheckBox(self, label="Beep when status bar is cleared"))
+		self.beepOnClear.SetValue(conf[BEEP_ON_STATUS_CLEARED_KEY])
 		self.speakOnChange = sHelper.addItem(wx.CheckBox(self, label="Automatically read status bar changes"))
 		self.speakOnChange.SetValue(conf[SPEAK_ON_STATUS_CHANGED_KEY])
 		self.beepBeforeReading = sHelper.addItem(wx.CheckBox(self, label="Beep before status bar change is read"))
@@ -65,6 +70,7 @@ class IntelliJAddonSettings(SettingsPanel):
 	def onSave(self):
 		conf = config.conf[CONF_KEY]
 		conf[BEEP_ON_STATUS_CHANGED_KEY] = self.beepOnChange.Value
+		conf[BEEP_ON_STATUS_CLEARED_KEY] = self.beepOnClear.Value
 		conf[SPEAK_ON_STATUS_CHANGED_KEY] = self.speakOnChange.Value
 		conf[INTERRUPT_SPEECH_KEY] = self.interruptSpeech.Value
 		conf[BEEP_BEFORE_READING_KEY] = self.beepBeforeReading.Value
@@ -74,6 +80,7 @@ class IntelliJAddonSettings(SettingsPanel):
 @dataclass
 class Vars:
 	beepOnChange: bool = DEFAULT_BEEP_ON_CHANGE
+	beepOnClear: bool = DEFAULT_BEEP_ON_STATUS_CLEARED
 	speakOnChange: bool = DEFAULT_SPEAK_ON_CHANGE
 	interruptSpeech: bool = DEFAULT_INTERRUPT_SPEECH
 	beepBeforeReading: bool = DEFAULT_BEEP_BEFORE_READING
@@ -84,6 +91,7 @@ vars = Vars()
 def setGlobalVars():
 	conf = config.conf[CONF_KEY]
 	vars.beepOnChange = conf[BEEP_ON_STATUS_CHANGED_KEY]
+	vars.beepOnClear = conf[BEEP_ON_STATUS_CLEARED_KEY]
 	vars.speakOnChange = conf[SPEAK_ON_STATUS_CHANGED_KEY]
 	vars.interruptSpeech = conf[INTERRUPT_SPEECH_KEY]
 	vars.beepBeforeReading = conf[BEEP_BEFORE_READING_KEY]
@@ -212,7 +220,7 @@ class AppModule(appModuleHandler.AppModule):
 class StatusBarWatcher(threading.Thread):
 	STATUS_CHANGED_TONE = 1000
 	AFTER_TONE = 800
-	STATUS_CLEARED_TONE = 2000
+	STATUS_CLEARED_TONE = 500
 	SLEEP_DURATION = 0.25
 	REFRESH_INTERVAL = 5 # seconds
 
@@ -231,8 +239,10 @@ class StatusBarWatcher(threading.Thread):
 		msg = obj.firstChild.name
 
 		if self._lastText != msg:
-			if vars.beepOnChange:
-				tones.beep(StatusBarWatcher.STATUS_CHANGED_TONE if msg else StatusBarWatcher.STATUS_CLEARED_TONE, 50)
+			if msg and vars.beepOnChange:
+				tones.beep(StatusBarWatcher.STATUS_CHANGED_TONE, 50)
+			elif not msg and vars.beepOnClear:
+				tones.beep(StatusBarWatcher.STATUS_CLEARED_TONE, 50)
 
 			if msg and vars.speakOnChange:
 				seq = []
