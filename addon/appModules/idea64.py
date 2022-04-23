@@ -194,16 +194,6 @@ class AppModule(appModuleHandler.AppModule):
 
 			return obj
 
-	@script("Toggle beeping when the status bar changes", category="IntelliJ")
-	def script_toggleBeepOnStatusBarChange(self, gesture):
-		newVal = not vars.beepOnChange
-		config.conf[CONF_KEY][BEEP_ON_STATUS_CHANGED_KEY] = newVal
-		vars.beepOnChange = newVal
-		if newVal:
-			ui.message("Enabled beeping on status bar change")
-		else:
-			ui.message("Disabled beeping on status bar change")
-
 	@script("Toggle automatically reading status bar changes", category="IntelliJ")
 	def script_toggleSpeakOnStatusChanged(self, gesture):
 		newVal = not vars.speakOnChange
