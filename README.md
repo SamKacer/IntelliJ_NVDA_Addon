@@ -5,8 +5,8 @@ Current features are:
 * when caret moves to different line, the line at the new position is read out
 * when selection changes it is read out
 * when the status bar text has changed, NVDA beeps and speaks it
-  * this includes reading the error description if the caret landed on one
-  * configurable in settings
+    - this includes reading the error description if the caret landed on one
+    - configurable in settings
 * command to read status bar (NVDA + I)
 
 ## How to install
@@ -15,11 +15,11 @@ Current features are:
 
 ## Tips for using IntelliJ
 ### Checking errors/warnings
-When focused inside a file editor:
+#### When focused inside a file editor:
 * F2/ shift + F2 : go to next/previous error or warning
-When editor cursor is on error/warning:
-* NVDA  + I: Quickly read error description dislayed in status bar
-* ctrl + F1: show more detailed error description
+#### When editor cursor is on error/warning:
+* NVDA  + I: Quickly read error description displayed in status bar
+* ctrl + F1: open message box with more detailed error description
 * alt + enter: open list of quick actions
 
 ### Navigating
