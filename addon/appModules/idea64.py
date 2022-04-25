@@ -176,14 +176,13 @@ class AppModule(appModuleHandler.AppModule):
 			ui.message(msg)
 
 	def getStatusBar(self, refresh: bool = False):
+		obj = api.getForegroundObject()
+		if obj is None or not obj.appModule.appName == "idea64":
+			# Ignore cases nvda is lost
+			return
 		if self.status and not refresh:
 			return self.status
 		else:
-			obj = api.getForegroundObject()
-			if obj is None or not obj.appModule.appName == "idea64":
-				# Ignore cases nvda is lost
-				return
-
 			obj = obj.simpleFirstChild
 			while obj is not None:
 				if obj.role == STATUSBAR:

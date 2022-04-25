@@ -47,6 +47,8 @@ inside editor:
 * alt + shift + F9: open run dialogue (note: if editor caret is on unit test, this will also autogenerate a run configuration for running that specific test case)
 
 ## Changelog
+### Version 1.3.1
+* fixed the status bar sometimes being read while not in IntelliJ
 ### Version 1.3.0
 * added feature for automatically reading errors and other status bar changes (thanks to Thiago @thgcode for the contribution!)
 * reading status bar with NVDA + I is much faster
