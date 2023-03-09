@@ -177,7 +177,7 @@ class AppModule(appModuleHandler.AppModule):
 
 	def getStatusBar(self, refresh: bool = False):
 		obj = api.getForegroundObject()
-		if obj is None or not obj.appModule.appName == "idea64":
+		if obj is None or not obj.appModule.appName in ("idea64", "pycharm64"):
 			# Ignore cases nvda is lost
 			return
 		if self.status and not refresh:
