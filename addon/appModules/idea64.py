@@ -185,6 +185,8 @@ class AppModule(appModuleHandler.AppModule):
 		else:
 			obj = obj.simpleFirstChild
 			while obj is not None:
+				if version_year >= 2023 and obj.name == "Status Bar":
+					return obj.simpleFirstChild
 				if obj.role == STATUSBAR:
 					self.status = obj
 					break
