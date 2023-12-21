@@ -186,9 +186,11 @@ class AppModule(appModuleHandler.AppModule):
 			obj = obj.simpleFirstChild
 			while obj is not None:
 				if obj.name == "Status Bar":
-					obj = obj.simpleFirstChild
-					self.status = obj
-					break
+					child = obj.simpleFirstChild
+					if child.role == STATUSBAR:
+						obj = child
+						self.status = obj
+						break
 				if obj.role == STATUSBAR:
 					self.status = obj
 					break
