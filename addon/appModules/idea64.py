@@ -185,12 +185,14 @@ class AppModule(appModuleHandler.AppModule):
 		else:
 			obj = obj.simpleFirstChild
 			while obj is not None:
+				# This first searching pattern is for IntelliJ post v2023
 				if obj.name == "Status Bar":
 					child = obj.simpleFirstChild
 					if child.role == STATUSBAR:
 						obj = child
 						self.status = obj
 						break
+				# this second searching pattern is for IntelliJ pre v2023
 				if obj.role == STATUSBAR:
 					self.status = obj
 					break
