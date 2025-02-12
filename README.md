@@ -60,9 +60,11 @@ inside editor:
 * alt + shift + F9: open run dialogue (note: if editor caret is on unit test, this will also autogenerate a run configuration for running that specific test case)
 
 ## Changelog
-### Version 1.3.3
+### Version 1.3.4
 * Updated NVDA last tested version to 2024.4.1
 * Display help message on enabling the status bar text widget if unable to read the status text
+### Version 1.3.3
+* Fixed not being able to find the status bar in IntelliJ v2023.1
 ### Version 1.3.2
 * compatible with NVDA version 2023.1 and beyond
 ### Version 1.3.1

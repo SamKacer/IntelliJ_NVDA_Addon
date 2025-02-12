@@ -25,7 +25,7 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description": _("Adds support for using IntelliJ with NVDA."),
 	# version
-	"addon_version": "1.3.3",
+	"addon_version": "1.3.4",
 	# Author(s)
 	"addon_author": "Samuel Kacer <samuel.kacer@gmail.con>",
 	# URL for the add-on documentation support
