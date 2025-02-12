@@ -170,7 +170,29 @@ class AppModule(appModuleHandler.AppModule):
 	def script_readStatusBar(self, gesture):
 		status = self.getStatusBar()
 		if status is None:
-			ui.message('couldnt find status bar')
+			ui.browseableMessage(isHtml=True, message="""
+				<p>Failed to read the status bar text. Make sure the "status text" status bar widget is enabled:</p>
+				<ol>
+					<li>
+						Open the Search All panel by double tapping shift
+					</li>
+					<li>
+						Search for "Status Bar Widgets" and activate it with Enter.
+					</li>
+					<li>
+						Find  "status text" in the list.
+					</li>
+					<li>
+						Activate it by pressing spacebar. (It  might not report whether it is checked or not)
+					</li>
+					<li>
+						Exit the widgets list by pressing Esc.
+					</li>
+					<li>
+						Retry reading the error/warning description.
+					</li>
+				</ol>
+			""")
 		else:
 			msg = status.simpleFirstChild.name
 			ui.message(msg)
