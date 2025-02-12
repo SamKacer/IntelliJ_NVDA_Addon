@@ -13,6 +13,19 @@ Current features are:
 1. Download latest release or build by running scons
 2. install like a normal addon by opening the generated addon file with NVDA (should open with NVDA by default)
 
+## How to fix the status bar text not being read
+
+If the status bar text isn't read out, such as for automatically reading error/warning descriptions, then it is likely that the status bar text widget isn't enabled. Since IntelliJ version 2023.3, it seems to be disabled by default, so it has to be manually enabled. To do so, do the following:
+
+1. Open the Search All panel by double tapping shift
+2. Search for "Status Bar Widgets" and activate it with Enter.
+3. Find  "status text" in the list.
+4. Activate it by pressing spacebar. (It  might not report whether it is checked or not)
+5. Exit the widgets list by pressing Esc.
+6. Retry reading the error/warning description.
+
+You can test whether the status bar text can now be read successfully by jumping to an error/warning with F2 and pressing NVDA + I.
+
 ## Tips for using IntelliJ
 ### Checking errors/warnings
 #### When focused inside a file editor:
