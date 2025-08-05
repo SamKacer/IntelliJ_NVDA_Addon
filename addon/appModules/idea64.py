@@ -136,6 +136,7 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 					"kb:alt+j",
 					"kb:alt+control+downArrow",
 					"kb:alt+control+upArrow",
+					"kb:control+z",
 				)
 			},
 			# these gestures trigger selection change
