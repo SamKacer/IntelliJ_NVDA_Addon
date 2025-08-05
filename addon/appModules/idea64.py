@@ -111,32 +111,46 @@ if config.conf.get(CONF_KEY) is None:
 setGlobalVars()
 
 class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
-	__gestures = {
-		# these IntelliJ commands change caret position, so they should trigger reading new line position
-		"kb:alt+downArrow" : "caret_moveByLine",
-		"kb:alt+upArrow" : "caret_moveByLine",
-		"kb:control+[" : "caret_moveByLine",
-		"kb:control+]" : "caret_moveByLine",
-		"kb:f2" : "caret_moveByLine",
-		"kb:shift+f2" : "caret_moveByLine",
-		"kb:control+b" : "caret_moveByLine",
-		"kb:control+alt+leftArrow" : "caret_moveByLine",
-		"kb:control+alt+rightArrow" : "caret_moveByLine",
-		"kb:control+y" : "caret_moveByLine",
-		"kb:f3" : "caret_moveByLine",
-		"kb:shift+f3" : "caret_moveByLine",
-		"kb:control+u" : "caret_moveByLine",
-		"kb:control+shift+backspace" : "caret_moveByLine",
-		"kb:control+/" : "caret_moveByLine",
-		"kb:alt+j" : "caret_moveByLine",
-		"kb:alt+control+downArrow" : "caret_moveByLine",
-		"kb:alt+control+upArrow" : "caret_moveByLine",
-		# these gestures trigger selection change
-		"kb:control+w": "caret_changeSelection",
-		"kb:control+shift+w": "caret_changeSelection",
-		"kb:alt+shift+j": "caret_changeSelection",
-		"kb:control+shift+[": "caret_changeSelection",
-		"kb:control+shift+]": "caret_changeSelection",
+	__gestures = { 
+		k: v
+		for d in (
+			# these IntelliJ commands change caret position, so they should trigger reading new line position
+			{ 
+				g: "caret_moveByLine"
+				for g in (
+					"kb:alt+downArrow",
+					"kb:alt+upArrow",
+					"kb:control+[",
+					"kb:control+]",
+					"kb:f2",
+					"kb:shift+f2",
+					"kb:control+b",
+					"kb:control+alt+leftArrow",
+					"kb:control+alt+rightArrow",
+					"kb:control+y",
+					"kb:f3",
+					"kb:shift+f3",
+					"kb:control+u",
+					"kb:control+shift+backspace",
+					"kb:control+/",
+					"kb:alt+j",
+					"kb:alt+control+downArrow",
+					"kb:alt+control+upArrow",
+				)
+			},
+			# these gestures trigger selection change
+			{
+				g: "caret_changeSelection"
+				for g in (
+					"kb:control+w",
+					"kb:control+shift+w",
+					"kb:alt+shift+j",
+					"kb:control+shift+[",
+					"kb:control+shift+]",
+				)
+			}
+		)
+		for k, v in d.items()
 	}
 
 	shouldFireCaretMovementFailedEvents = True
