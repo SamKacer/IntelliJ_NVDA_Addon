@@ -23,6 +23,7 @@ import threading
 import time
 from winsound import PlaySound, SND_ASYNC, SND_ALIAS
 import wx
+from core import callLater
 
 # handle both pre and post 2022 controlTypes
 if version_year >= 2022:
@@ -39,6 +40,7 @@ SPEAK_ON_STATUS_CHANGED_KEY = 'speakOnStatusChange'
 INTERRUPT_SPEECH_KEY = 'interruptOnStatusChange'
 BEEP_BEFORE_READING_KEY = 'beepBeforeReadingStatus'
 BEEP_AFTER_READING_KEY = 'beepAfterReadingStatus'
+BEEP_ON_BREAKPOINT_KEY = 'beepOnBreakpoint'
 
 DEFAULT_BEEP_ON_CHANGE = False
 DEFAULT_BEEP_ON_STATUS_CLEARED = False
@@ -46,6 +48,7 @@ DEFAULT_SPEAK_ON_CHANGE = True
 DEFAULT_INTERRUPT_SPEECH = False
 DEFAULT_BEEP_BEFORE_READING = True
 DEFAULT_BEEP_AFTER_READING = False
+DEFAULT_BEEP_ON_BREAKPOINT = True
 
 config.conf.spec[CONF_KEY] = {
 	BEEP_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_BEEP_ON_CHANGE})',
@@ -53,7 +56,8 @@ config.conf.spec[CONF_KEY] = {
 	SPEAK_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_SPEAK_ON_CHANGE})',
 	INTERRUPT_SPEECH_KEY : f'boolean(default={DEFAULT_INTERRUPT_SPEECH})',
 	BEEP_BEFORE_READING_KEY : f'boolean(default={DEFAULT_BEEP_BEFORE_READING})',
-	BEEP_AFTER_READING_KEY : f'boolean(default={DEFAULT_BEEP_AFTER_READING})'
+	BEEP_AFTER_READING_KEY : f'boolean(default={DEFAULT_BEEP_AFTER_READING})',
+	BEEP_ON_BREAKPOINT_KEY: f'boolean(default={DEFAULT_BEEP_ON_BREAKPOINT})'
 }
 
 class IntelliJAddonSettings(SettingsPanel):
@@ -74,6 +78,8 @@ class IntelliJAddonSettings(SettingsPanel):
 		self.beepAfterReading.SetValue(conf[BEEP_AFTER_READING_KEY])
 		self.interruptSpeech = sHelper.addItem(wx.CheckBox(self, label="Interrupt speech when automatically reading status bar changes"))
 		self.interruptSpeech.SetValue(conf[INTERRUPT_SPEECH_KEY])
+		self.beepOnBreakpoint = sHelper.addItem(wx.CheckBox(self, label="Beep when breakpoint is detected on current line"))
+		self.beepOnBreakpoint.SetValue(conf[BEEP_ON_BREAKPOINT_KEY])
 
 	def onSave(self):
 		conf = config.conf[CONF_KEY]
@@ -83,6 +89,7 @@ class IntelliJAddonSettings(SettingsPanel):
 		conf[INTERRUPT_SPEECH_KEY] = self.interruptSpeech.Value
 		conf[BEEP_BEFORE_READING_KEY] = self.beepBeforeReading.Value
 		conf[BEEP_AFTER_READING_KEY] = self.beepAfterReading.Value
+		conf[BEEP_ON_BREAKPOINT_KEY] = self.beepOnBreakpoint.Value
 		setGlobalVars()
 
 @dataclass
@@ -93,6 +100,7 @@ class Vars:
 	interruptSpeech: bool = DEFAULT_INTERRUPT_SPEECH
 	beepBeforeReading: bool = DEFAULT_BEEP_BEFORE_READING
 	beepAfterReading: bool = DEFAULT_BEEP_AFTER_READING
+	beepOnBreakpoint: bool = DEFAULT_BEEP_ON_BREAKPOINT
 
 vars = Vars()
 
@@ -104,14 +112,16 @@ def setGlobalVars():
 	vars.interruptSpeech = conf[INTERRUPT_SPEECH_KEY]
 	vars.beepBeforeReading = conf[BEEP_BEFORE_READING_KEY]
 	vars.beepAfterReading = conf[BEEP_AFTER_READING_KEY]
+	vars.beepOnBreakpoint = conf[BEEP_ON_BREAKPOINT_KEY]
 
 # initialize conf in case being run for the first time
 if config.conf.get(CONF_KEY) is None:
 	config.conf[CONF_KEY] = {}
 setGlobalVars()
 
+
 class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
-	__gestures = { 
+	__gestures = {
 		k: v
 		for d in (
 			# these IntelliJ commands change caret position, so they should trigger reading new line position
@@ -137,6 +147,13 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 					"kb:alt+control+downArrow",
 					"kb:alt+control+upArrow",
 					"kb:control+z",
+					"kb:f8",
+					"kb:alt+shift+f8",
+					"kb:f7",
+					"kb:alt+shift+f7",
+					"kb:shift+f7",
+					"kb:shift+f8",
+					"kb:alt+f10",
 				)
 			},
 			# these gestures trigger selection change
@@ -159,20 +176,34 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 	def event_caretMovementFailed(self, gesture):
 		PlaySound('SystemExclamation', SND_ASYNC | SND_ALIAS)
 
-	
+	def event_caret(self):
+		super().event_caret()
+		if vars.beepOnBreakpoint:
+			# delay checkForBreakpoint to insure that the line number in the status bar is updated
+			callLater(100, self.checkForBreakpoint)
+
+	def checkForBreakpoint(self):
+		foregroundObj = api.getForegroundObject()
+		appModule = foregroundObj.appModule
+		if appModule.hasBreakpointOnCurrentLine():
+			tones.beep(300, 150)
+
 
 class AppModule(appModuleHandler.AppModule):
 	def __init__(self, pid, appName=None):
 		super(AppModule, self).__init__(pid, appName)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(IntelliJAddonSettings)
 		self.status = None
+		self.lineNumber = None
+		self.bookmarks = None
+		self.lastCheckedBreakpointFile = None
+		self.lastCheckedBreakpointLine = None
 		self.watcher = StatusBarWatcher(self)
 		self.watcher.start()
 
 	def terminate(self):
 		self.watcher.stopped = True
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(IntelliJAddonSettings)
-
 
 	def chooseNVDAObjectOverlayClasses(self, obj, clsList):
 		if obj.role == EDITABLE_TEXT:
@@ -209,12 +240,13 @@ class AppModule(appModuleHandler.AppModule):
 				</ol>
 			""")
 		else:
-			msg = status.simpleFirstChild.name
-			ui.message(msg)
+			if status.simpleFirstChild and status.simpleFirstChild.name:
+				msg = status.simpleFirstChild.name
+				ui.message(msg)
 
 	def getStatusBar(self, refresh: bool = False):
 		obj = api.getForegroundObject()
-		if obj is None or not obj.appModule.appName == "idea64":
+		if not obj or not obj.appModule or not obj.appModule.appName == "idea64":
 			# Ignore cases nvda is lost
 			return
 		if self.status and not refresh:
@@ -257,6 +289,150 @@ class AppModule(appModuleHandler.AppModule):
 			ui.message("Enabled interrupting speech while automatically reading status bar changes")
 		else:
 			ui.message("Disabled interrupting speech while automatically reading status bar changes")
+
+	@script("Toggle beep on breakpoint", category="IntelliJ")
+	def script_toggleBeepOnBreakpoint(self, gesture):
+		newVal = not vars.beepOnBreakpoint
+		config.conf[CONF_KEY][BEEP_ON_BREAKPOINT_KEY] = newVal
+		vars.beepOnBreakpoint = newVal
+		ui.message("Enabled beep on breakpoint" if newVal else "Disabled beep on breakpoint")
+
+	@script(
+		"Read current line number from IntelliJ",
+		gesture="kb:nvda+alt+l",
+		category="IntelliJ"
+	)
+	def script_readLineNumber(self, gesture):
+		lineNumber = self.getLineNumber()
+		if lineNumber is None:
+			ui.browseableMessage(isHtml=True, message="""
+				<p>Failed to read the line number. Make sure the editor is open and the "Line:Column Number" status bar widget is enabled:</p>
+				<ol>
+					<li>
+						Open the Search All panel by double tapping shift
+					</li>
+					<li>
+						Search for "Status Bar Widgets" and activate it with Enter.
+					</li>
+					<li>
+						Find  "Line:Column Number" in the list.
+					</li>
+					<li>
+						Activate it by pressing spacebar. (It  might not report whether it is checked or not)
+					</li>
+					<li>
+						Exit the widgets list by pressing Esc.
+					</li>
+					<li>
+						Retry reading the line number.
+					</li>
+				</ol>
+			""")
+		else:
+			if lineNumber.name:
+				ui.message(f"Line {lineNumber.name}")
+
+	def getLineNumber(self):
+		obj = api.getForegroundObject()
+		if not obj or not obj.appModule or not obj.appModule.appName == "idea64":
+			# Ignore cases nvda is lost
+			return
+		if self.lineNumber:
+			return self.lineNumber
+
+		obj = obj.simpleFirstChild
+		while obj is not None:
+			if obj.name == "Status Bar" or obj.role == STATUSBAR:
+				child = obj.simpleFirstChild
+
+				while child is not None:
+					if child.description and child.description.lower() == "go to line":
+						self.lineNumber = child
+						return child
+					child = child.simpleNext
+
+			obj = obj.simpleNext
+
+		return None
+
+	def hasBreakpointOnCurrentLine(self):
+		lineObj = self.getLineNumber()
+		if not lineObj or not lineObj.name or ":" not in lineObj.name:
+			return False
+
+		try:
+			line = int(lineObj.name.split(":")[0])
+		except ValueError:
+			return False
+
+		# Get file name from window title
+		fg = api.getForegroundObject()
+		if not fg or not fg.windowText:
+			return False
+
+		# Example: 'sample – Main.java' => Main.java
+		windowTitle = fg.windowText
+		if "–" in windowTitle:
+			fileName = windowTitle.split("–")[-1].strip()
+		else:
+			fileName = windowTitle.strip()
+
+		# optimisation to return early if we got an event for the same line number and file we just checked
+		if self.lastCheckedBreakpointFile == fileName and self.lastCheckedBreakpointLine == line:
+			return False  # Already checked
+
+		self.lastCheckedBreakpointFile = fileName
+		self.lastCheckedBreakpointLine = line
+
+		breakpointTree = self.getBreakpointTree()
+		if not breakpointTree:
+			return False
+
+		category = breakpointTree.simpleFirstChild
+		while category:
+			# Check different types of breakpoints (Java, conditional, etc.), although line breakpoints seem to be the only breakpoint type that provides a line number
+			subItem = category.simpleFirstChild
+			while subItem:
+				name = subItem.name.lower()
+				if fileName.lower() in name:
+					if f":{line}" in name:
+						return True
+				subItem = subItem.simpleNext
+			category = category.simpleNext
+
+		return False
+
+	def getBreakpointTree(self):
+		# Unable to cache breakpoint tree due to object becoming stale
+		root = self.getBookmarks()
+		if not root:
+			return None
+
+		tree = root.simpleLastChild.simpleFirstChild
+		while tree:
+			if tree.name and tree.name.lower() == "breakpoints":
+				break
+			tree = tree.simpleNext
+
+		return tree
+
+	def getBookmarks(self):
+		obj = api.getForegroundObject()
+		if not obj or not obj.appModule or not obj.appModule.appName == "idea64":
+			# Ignore cases nvda is lost
+			return
+		if self.bookmarks:
+			return self.bookmarks
+
+		obj = obj.simpleFirstChild
+		while obj is not None:
+			if obj.name and obj.name .lower() == "bookmarks tool window":
+				self.bookmarks = obj
+				break
+
+			obj = obj.simpleNext
+
+		return obj
 
 
 class StatusBarWatcher(threading.Thread):

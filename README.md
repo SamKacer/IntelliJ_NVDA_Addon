@@ -8,6 +8,9 @@ Current features are:
     - this includes reading the error description if the caret landed on one
     - configurable in settings
 * command to read status bar (NVDA + I)
+* command to anounce current line number (NVDA + ALT + L)
+* when caret navigates to a line with a breakpoint,  NVDA beeps
+    - configurable in settings
 
 ## How to install
 1. Download latest release or build by running scons
@@ -25,6 +28,9 @@ If the status bar text isn't read out, such as for automatically reading error/w
 6. Retry reading the error/warning description.
 
 You can test whether the status bar text can now be read successfully by jumping to an error/warning with F2 and pressing NVDA + I.
+
+The same applies to the line number. You will need to insure that the line number is shown in the status bar before you are able to get the line number.
+Note that breakpoints will not be indicated without the line number being visible in the status bar.
 
 ## Tips for using IntelliJ
 ### Checking errors/warnings
@@ -58,6 +64,17 @@ inside editor:
 * ctrl + alt + L: format code
 * alt + F7: find usages
 * alt + shift + F9: open run dialogue (note: if editor caret is on unit test, this will also autogenerate a run configuration for running that specific test case)
+
+### Debugging
+* alt + shift + f10, right arrow on your application and choose debug: start debugging
+* alt + 5: open debug panel
+* control + shift + f8: view all breakpoints dialog
+* control + f8: insert breakpoint at line
+* f8: step over
+* f7 step into
+* shift + f7: step out
+* f9: resume
+* alt + f10: jump to current execution line
 
 ## Changelog
 ### Version 1.4.0
