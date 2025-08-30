@@ -77,6 +77,10 @@ inside editor:
 * alt + f10: jump to current execution line
 
 ## Changelog
+### Version 1.5.0
+* Added enhancements for line number and indicating line breakpoints (thanks to Tim @tbreitenfeldt for the contribution!)
+    - New gesture for reading current line number (default NVDA + Alt + L)
+    - New setting "Beep when breakpoint is detected on current line" (turned on by default)
 ### Version 1.4.0
 * Read line after pressing Control + Z
 ### Version 1.3.4
