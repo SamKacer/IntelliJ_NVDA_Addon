@@ -48,7 +48,7 @@ DEFAULT_SPEAK_ON_CHANGE = True
 DEFAULT_INTERRUPT_SPEECH = False
 DEFAULT_BEEP_BEFORE_READING = True
 DEFAULT_BEEP_AFTER_READING = False
-DEFAULT_BEEP_ON_BREAKPOINT = True
+DEFAULT_BEEP_ON_BREAKPOINT = False
 
 config.conf.spec[CONF_KEY] = {
 	BEEP_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_BEEP_ON_CHANGE})',
@@ -78,7 +78,7 @@ class IntelliJAddonSettings(SettingsPanel):
 		self.beepAfterReading.SetValue(conf[BEEP_AFTER_READING_KEY])
 		self.interruptSpeech = sHelper.addItem(wx.CheckBox(self, label="Interrupt speech when automatically reading status bar changes"))
 		self.interruptSpeech.SetValue(conf[INTERRUPT_SPEECH_KEY])
-		self.beepOnBreakpoint = sHelper.addItem(wx.CheckBox(self, label="Beep when breakpoint is detected on current line"))
+		self.beepOnBreakpoint = sHelper.addItem(wx.CheckBox(self, label="(Experimental) Beep when breakpoint is detected on current line"))
 		self.beepOnBreakpoint.SetValue(conf[BEEP_ON_BREAKPOINT_KEY])
 
 	def onSave(self):

@@ -9,7 +9,7 @@ Current features are:
     - configurable in settings
 * command to read status bar (NVDA + I)
 * command to anounce current line number (NVDA + ALT + L)
-* when caret navigates to a line with a breakpoint,  NVDA beeps
+* (Experimental) when caret navigates to a line with a breakpoint,  NVDA beeps
     - configurable in settings
 
 ## How to install
