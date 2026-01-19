@@ -214,6 +214,7 @@ class AppModule(appModuleHandler.AppModule):
 		if status is None:
 			ui.browseableMessage(isHtml=True, message="""
 				<p>Failed to read the status bar text. Make sure the "status text" status bar widget is enabled:</p>
+				<h2>Method 1:</h2>
 				<ol>
 					<li>
 						Open the Search All panel by double tapping shift
@@ -229,6 +230,22 @@ class AppModule(appModuleHandler.AppModule):
 					</li>
 					<li>
 						Exit the widgets list by pressing Esc.
+					</li>
+					<li>
+						Retry reading the error/warning description.
+					</li>
+				</ol>
+				<p>If the status bar text widget doesn't appear in the list of options, try the second method below.</p>
+				<h2>Method 2</h2>
+				<ol>
+					<li>
+						Go to the View menu (Alt + V)
+					</li>
+					<li>
+						Go to Appearance > Navigation Bar
+					</li>
+					<li>
+						Select an option other than "In Status Bar", such as "Top" or "Don't Show"
 					</li>
 					<li>
 						Retry reading the error/warning description.
