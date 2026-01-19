@@ -77,6 +77,10 @@ inside editor:
 * alt + f10: jump to current execution line
 
 ## Changelog
+### Version 1.5.2
+* Updated instructions for enablin the status text widget
+* Change beep on breakpoint to be false by default and marked as experimental
+
 ### Version 1.5.1
 * Updated last tested NVDA version to 2025.3.2
 ### Version 1.5.0
