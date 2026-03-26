@@ -1,0 +1,50 @@
+================================================================================
+  MENSAGEM DE COMMIT — GitHub (max 300 caracteres)
+================================================================================
+
+feat: release JetBrains NVDA Addon v1.0-beta
+
+Multi-IDE support (IntelliJ, PyCharm, WebStorm, GoLand, Rider, CLion),
+locale-independent UI detection, AI inline suggestion reading (Copilot),
+cache validation, event-driven status bar, and critical import fix.
+
+
+================================================================================
+  POST — LinkedIn
+================================================================================
+
+Acessibilidade para devs que usam leitores de tela: lancei o JetBrains NVDA Addon v1.0-beta 🎉
+
+Sou pessoa com deficiência visual e uso o NVDA (leitor de telas) no meu dia a dia como desenvolvedor. Uma das maiores dificuldades é trabalhar com IDEs como IntelliJ, PyCharm e WebStorm — que têm suporte de acessibilidade limitado por padrão.
+
+Por isso, criei uma versão melhorada do addon NVDA para JetBrains IDEs, baseado no trabalho original de Samuel Kacer. Essa versão traz melhorias significativas de compatibilidade e uma feature nova que me ajuda muito no trabalho com IA:
+
+✅ Suporte a múltiplas IDEs JetBrains com um único addon
+   (IntelliJ IDEA, PyCharm, WebStorm, GoLand, Rider, CLion)
+
+✅ Leitura de sugestões inline do GitHub Copilot
+   Modo automático + atalho sob demanda (NVDA+Shift+A)
+
+✅ Detecção de UI independente de idioma
+   Funciona em instalações do IDE em qualquer língua
+
+✅ Leitura da barra de status em tempo real
+   Erros, avisos e mensagens anunciados automaticamente
+
+✅ Leitura do número de linha atual (NVDA+Alt+L)
+
+✅ Correções de estabilidade e compatibilidade com NVDA 2022+
+
+---
+
+Se você usa NVDA e trabalha com JetBrains IDEs — ou conhece alguém que usa —, esse addon pode fazer uma diferença real na produtividade.
+
+O projeto é open source e estou aberto a colaborações, sugestões e pull requests. Se você quiser ajudar a testar em outras IDEs, melhorar a detecção de sugestões de IA (Tabnine, JetBrains AI Assistant), ou adicionar suporte a novos recursos de acessibilidade, fique à vontade para contribuir.
+
+🔗 Repositório: https://github.com/dovalerio/jetbrains_NVDA_Addon
+📧 Contato / dúvidas / bugs: danilo.oliveira142@gmail.com
+
+#Acessibilidade #NVDA #JetBrains #IntelliJ #PyCharm #OpenSource #DeficienciaVisual #GitHub #Copilot #Desenvolvimento
+
+
+================================================================================

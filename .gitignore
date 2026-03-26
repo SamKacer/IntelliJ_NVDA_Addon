@@ -10,3 +10,5 @@ addon/doc/en/
 .sconsign.dblite
 .venv
 .vscode
+.claude/
+.idea/

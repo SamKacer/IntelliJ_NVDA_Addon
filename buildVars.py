@@ -16,30 +16,30 @@ def _(arg):
 # Add-on information variables
 addon_info = {
 	# add-on Name/identifier, internal for NVDA
-	"addon_name": "IntelliJImproved",
+	"addon_name": "JetBrains",
 	# Add-on summary, usually the user visible name of the addon.
 	# Translators: Summary for this add-on
 	# to be shown on installation and add-on information found in Add-ons Manager.
-	"addon_summary": _("IntelliJ Improved"),
+	"addon_summary": _("JetBrains IDEs"),
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-	"addon_description": _("Adds support for using IntelliJ with NVDA."),
+	"addon_description": _("Adds NVDA accessibility support for JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, GoLand, Rider, CLion). Based on the original IntelliJ NVDA Addon by Samuel Kacer."),
 	# version
-	"addon_version": "1.5.2",
+	"addon_version": "1.0-beta",
 	# Author(s)
-	"addon_author": "Samuel Kacer <samuel.kacer@gmail.con>",
+	"addon_author": "Samuel Kacer <samuel.kacer@gmail.com> (original), Community Fork",
 	# URL for the add-on documentation support
 	"addon_url": None,
 	# Documentation file name
 	"addon_docFileName": "readme.html",
 	# Minimum NVDA version supported (e.g. "2018.3.0", minor version is optional)
-	"addon_minimumNVDAVersion": None,
-	# Last NVDA version supported/tested (e.g. "2019.3.1", 
+	"addon_minimumNVDAVersion": "2022.1",
+	# Last NVDA version supported/tested (e.g. "2019.3.1",
 	"addon_lastTestedNVDAVersion": "2025.3.2",
 	# Add-on update channel (default is None, denoting stable releases,
 	# and for development releases, use "dev".)
 	# Do not change unless you know what you are doing!
-	"addon_updateChannel": None,
+	"addon_updateChannel": "beta",
 }
 
 # Define the python files that are the sources of your add-on.
