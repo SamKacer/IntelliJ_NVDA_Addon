@@ -475,17 +475,24 @@ class AppModule(appModuleHandler.AppModule):
 					else:
 						log.info("Treeview found in Find Usages panel")
 						activeTreeItem = treeview.activeDescendant
-						# to do: compare proper state enum
-						if 4194304 in activeTreeItem.states or 1024 in activeTreeItem.states:
-							# instead click on "Usages in Project Files   10 results"
-							clickOn(treeview.simpleFirstChild.simpleNext)
-						else:
+						if isVisibleOnScreen(activeTreeItem):
 							clickOn(activeTreeItem)
+						else:
+								# instead click on "Usages in Project Files   10 results"
+							usagesInProjectFiles = treeview.simpleFirstChild.simpleNext
+							if isVisibleOnScreen(usagesInProjectFiles):
+								# ^ this is just as a safety measure so accidently don't click off screen
+								# in practice have not actually encountered such a case
+								clickOn(usagesInProjectFiles)
 		except Exception:
 			log.exception("Error while processing focusGained event")
 		self.lastFocus = obj
 		nextHandler()
 
+
+def isVisibleOnScreen(obj) -> bool:
+	# to do: compare proper state enum
+	return not (4194304 in obj.states or 1024 in obj.states)
 
 def clickOn(obj) -> None:
 	import mouseHandler, winUser
