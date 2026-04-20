@@ -29,9 +29,13 @@ from core import callLater
 if version_year >= 2022:
 	EDITABLE_TEXT = controlTypes.Role.EDITABLETEXT
 	STATUSBAR = controlTypes.Role.STATUSBAR
+	TREEVIEW = controlTypes.Role.TREEVIEW
+	BUTTON = controlTypes.Role.BUTTON
 else:
 	EDITABLE_TEXT = controlTypes.ROLE_EDITABLETEXT
 	STATUSBAR = controlTypes.ROLE_STATUSBAR
+	TREEVIEW = controlTypes.ROLE_TREEVIEW
+	BUTTON = controlTypes.ROLE_BUTTON
 
 CONF_KEY = 'intellij'
 BEEP_ON_STATUS_CHANGED_KEY = 'beepOnStatusChange'
@@ -452,10 +456,9 @@ class AppModule(appModuleHandler.AppModule):
 		try:
 			# when using Find Usages (Alt + F7), switch focus to the tree view automatically
 			log.info(f"focus gained: {obj.name}, {obj.role}")
-			# to do: replace with proper role type
 			if (
 				obj.name == "Rerun"
-				and obj.role == 9
+				and obj.role == BUTTON
 				# avoid jumping to treeview when purposefully tabbing to rerun
 				and (actionToolbar := obj.simpleParent) != self.lastFocus.simpleParent
 			):
@@ -465,7 +468,7 @@ class AppModule(appModuleHandler.AppModule):
 					log.info("Rerun button belongs to Find usages panel")
 					# find treeview
 					treeview = actionToolbar.simpleNext
-					while treeview and  treeview.role != 20:
+					while treeview and  treeview.role != TREEVIEW:
 						treeview = treeview.simpleNext
 					if not treeview:
 						log.warning("Did not find treeview in Find Usages panel")
