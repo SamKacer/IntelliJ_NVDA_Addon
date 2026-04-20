@@ -491,8 +491,9 @@ class AppModule(appModuleHandler.AppModule):
 
 
 def isVisibleOnScreen(obj) -> bool:
+	states = obj.states
 	# to do: compare proper state enum
-	return not (4194304 in obj.states or 1024 in obj.states)
+	return not (4194304 in states or 1024 in states)
 
 def clickOn(obj) -> None:
 	import mouseHandler, winUser
