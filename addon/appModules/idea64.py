@@ -196,6 +196,7 @@ class AppModule(appModuleHandler.AppModule):
 		self.lastCheckedBreakpointLine = None
 		self.watcher = StatusBarWatcher(self)
 		self.watcher.start()
+		self.lastFocus = None
 
 	def terminate(self):
 		self.watcher.stopped = True
@@ -452,9 +453,13 @@ class AppModule(appModuleHandler.AppModule):
 			# when using Find Usages (Alt + F7), switch focus to the tree view automatically
 			log.info(f"focus gained: {obj.name}, {obj.role}")
 			# to do: replace with proper role type
-			if obj.name == "Rerun" and obj.role == 9:
+			if (
+				obj.name == "Rerun"
+				and obj.role == 9
+				# avoid jumping to treeview when purposefully tabbing to rerun
+				and (actionToolbar := obj.simpleParent) != self.lastFocus.simpleParent
+			):
 				log.info("Focuse gained by rerun button")
-				actionToolbar = obj.simpleParent
 				if "in Project and Libraries Tool Window" in actionToolbar.simpleParent.name:
 					log.info("Rerun button belongs to Find usages panel")
 					# find treeview
@@ -468,6 +473,7 @@ class AppModule(appModuleHandler.AppModule):
 						clickOn(treeview.activeDescendant)
 		except Exception:
 			log.exception("Error while processing focusGained event")
+		self.lastFocus = obj
 		nextHandler()
 
 
