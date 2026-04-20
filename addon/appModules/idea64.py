@@ -465,11 +465,22 @@ class AppModule(appModuleHandler.AppModule):
 						log.warning("Did not find treeview in Find Usages panel")
 					else:
 						log.info("Treeview found in Find Usages panel")
-						api.setFocusObject(treeview.activeDescendant)
+						clickOn(treeview.activeDescendant)
 		except Exception:
 			log.exception("Error while processing focusGained event")
 		nextHandler()
 
+
+def clickOn(obj) -> None:
+	import mouseHandler, winUser
+	# to do: restore mouse position afterwards
+	left, top, width, height = obj.location
+	x = left + (width // 2)
+	y = top + (height // 2)
+	winUser.setCursorPos(x, y)
+	mouseHandler.executeMouseMoveEvent(x, y)
+	mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTDOWN,0,0)
+	mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTUP,0,0)
 
 class StatusBarWatcher(threading.Thread):
 	STATUS_CHANGED_TONE = 1000
