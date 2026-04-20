@@ -460,7 +460,8 @@ class AppModule(appModuleHandler.AppModule):
 				and (actionToolbar := obj.simpleParent) != self.lastFocus.simpleParent
 			):
 				log.info("Focuse gained by rerun button")
-				if "in Project and Libraries Tool Window" in actionToolbar.simpleParent.name:
+				panelName = actionToolbar.simpleParent.name
+				if "in Project and Libraries Tool Window" in panelName or "in Project Files Tool Window" in panelName:
 					log.info("Rerun button belongs to Find usages panel")
 					# find treeview
 					treeview = actionToolbar.simpleNext
@@ -470,7 +471,13 @@ class AppModule(appModuleHandler.AppModule):
 						log.warning("Did not find treeview in Find Usages panel")
 					else:
 						log.info("Treeview found in Find Usages panel")
-						clickOn(treeview.activeDescendant)
+						activeTreeItem = treeview.activeDescendant
+						# to do: compare proper state enum
+						if 4194304 in activeTreeItem.states or 1024 in activeTreeItem.states:
+							# instead click on "Usages in Project Files   10 results"
+							clickOn(treeview.simpleFirstChild.simpleNext)
+						else:
+							clickOn(activeTreeItem)
 		except Exception:
 			log.exception("Error while processing focusGained event")
 		self.lastFocus = obj
