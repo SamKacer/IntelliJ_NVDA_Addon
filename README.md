@@ -11,6 +11,9 @@ Current features are:
 * command to anounce current line number (NVDA + ALT + L)
 * (Experimental) when caret navigates to a line with a breakpoint,  NVDA beeps
     - configurable in settings
+* When "Find Usages" (Alt + F7) panel is focused, the treeview is automatically selected instead of the Rerun button
+    - Normally, the Rerun button is focused, which requires tabbing 12 times to reach the treeview where all the information of interest is located
+    - toggleable in settings (Enabled by default)
 
 ## How to install
 1. Download latest release or build by running scons
@@ -77,6 +80,8 @@ inside editor:
 * alt + f10: jump to current execution line
 
 ## Changelog
+### Version 1.6.0
+* Automatically select treeview in "Find Usages" panel
 ### Version 1.5.2
 * Updated instructions for enablin the status text widget
 * Change beep on breakpoint to be false by default and marked as experimental
