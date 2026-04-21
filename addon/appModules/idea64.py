@@ -49,6 +49,7 @@ INTERRUPT_SPEECH_KEY = 'interruptOnStatusChange'
 BEEP_BEFORE_READING_KEY = 'beepBeforeReadingStatus'
 BEEP_AFTER_READING_KEY = 'beepAfterReadingStatus'
 BEEP_ON_BREAKPOINT_KEY = 'beepOnBreakpoint'
+AUTOSELECT_TREEVIEW_IN_FIND_USAGES_KEY = 'autoselectTreeviewInFindUsages'
 
 DEFAULT_BEEP_ON_CHANGE = False
 DEFAULT_BEEP_ON_STATUS_CLEARED = False
@@ -57,6 +58,7 @@ DEFAULT_INTERRUPT_SPEECH = False
 DEFAULT_BEEP_BEFORE_READING = True
 DEFAULT_BEEP_AFTER_READING = False
 DEFAULT_BEEP_ON_BREAKPOINT = False
+DEFAULT_AUTOSELECT_TREEVIEW_IN_FIND_USAGES = True
 
 config.conf.spec[CONF_KEY] = {
 	BEEP_ON_STATUS_CHANGED_KEY : f'boolean(default={DEFAULT_BEEP_ON_CHANGE})',
@@ -65,7 +67,8 @@ config.conf.spec[CONF_KEY] = {
 	INTERRUPT_SPEECH_KEY : f'boolean(default={DEFAULT_INTERRUPT_SPEECH})',
 	BEEP_BEFORE_READING_KEY : f'boolean(default={DEFAULT_BEEP_BEFORE_READING})',
 	BEEP_AFTER_READING_KEY : f'boolean(default={DEFAULT_BEEP_AFTER_READING})',
-	BEEP_ON_BREAKPOINT_KEY: f'boolean(default={DEFAULT_BEEP_ON_BREAKPOINT})'
+	BEEP_ON_BREAKPOINT_KEY: f'boolean(default={DEFAULT_BEEP_ON_BREAKPOINT})',
+	AUTOSELECT_TREEVIEW_IN_FIND_USAGES_KEY: f'boolean(default={DEFAULT_AUTOSELECT_TREEVIEW_IN_FIND_USAGES})',
 }
 
 class IntelliJAddonSettings(SettingsPanel):
@@ -86,6 +89,8 @@ class IntelliJAddonSettings(SettingsPanel):
 		self.beepAfterReading.SetValue(conf[BEEP_AFTER_READING_KEY])
 		self.interruptSpeech = sHelper.addItem(wx.CheckBox(self, label="Interrupt speech when automatically reading status bar changes"))
 		self.interruptSpeech.SetValue(conf[INTERRUPT_SPEECH_KEY])
+		self.autoselectInFindUsages = sHelper.addItem(wx.CheckBox(self, label="Autoselect treeview when entering Find Usages panel"))
+		self.autoselectInFindUsages.SetValue(conf[AUTOSELECT_TREEVIEW_IN_FIND_USAGES_KEY])
 		self.beepOnBreakpoint = sHelper.addItem(wx.CheckBox(self, label="(Experimental) Beep when breakpoint is detected on current line"))
 		self.beepOnBreakpoint.SetValue(conf[BEEP_ON_BREAKPOINT_KEY])
 
@@ -98,6 +103,7 @@ class IntelliJAddonSettings(SettingsPanel):
 		conf[BEEP_BEFORE_READING_KEY] = self.beepBeforeReading.Value
 		conf[BEEP_AFTER_READING_KEY] = self.beepAfterReading.Value
 		conf[BEEP_ON_BREAKPOINT_KEY] = self.beepOnBreakpoint.Value
+		conf[AUTOSELECT_TREEVIEW_IN_FIND_USAGES_KEY] = self.autoselectInFindUsages.Value
 		setGlobalVars()
 
 @dataclass
@@ -109,6 +115,7 @@ class Vars:
 	beepBeforeReading: bool = DEFAULT_BEEP_BEFORE_READING
 	beepAfterReading: bool = DEFAULT_BEEP_AFTER_READING
 	beepOnBreakpoint: bool = DEFAULT_BEEP_ON_BREAKPOINT
+	autoselectTreeviewInFindUsages: bool = DEFAULT_AUTOSELECT_TREEVIEW_IN_FIND_USAGES
 
 vars = Vars()
 
@@ -121,6 +128,7 @@ def setGlobalVars():
 	vars.beepBeforeReading = conf[BEEP_BEFORE_READING_KEY]
 	vars.beepAfterReading = conf[BEEP_AFTER_READING_KEY]
 	vars.beepOnBreakpoint = conf[BEEP_ON_BREAKPOINT_KEY]
+	vars.autoselectTreeviewInFindUsages = conf[AUTOSELECT_TREEVIEW_IN_FIND_USAGES_KEY]
 
 # initialize conf in case being run for the first time
 if config.conf.get(CONF_KEY) is None:
@@ -460,7 +468,8 @@ class AppModule(appModuleHandler.AppModule):
 		try:
 			# when using Find Usages (Alt + F7), switch focus to the tree view automatically
 			if (
-				obj.name == "Rerun"
+				vars.autoselectTreeviewInFindUsages
+				and obj.name == "Rerun"
 				and obj.role == BUTTON
 				# avoid jumping to treeview when purposefully tabbing to rerun
 				and (actionToolbar := obj.simpleParent) != self.lastFocus.simpleParent
