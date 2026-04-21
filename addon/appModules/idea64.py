@@ -459,17 +459,16 @@ class AppModule(appModuleHandler.AppModule):
 	def event_gainFocus(self, obj, nextHandler) -> None:
 		try:
 			# when using Find Usages (Alt + F7), switch focus to the tree view automatically
-			log.info(f"focus gained: {obj.name}, {obj.role}")
 			if (
 				obj.name == "Rerun"
 				and obj.role == BUTTON
 				# avoid jumping to treeview when purposefully tabbing to rerun
 				and (actionToolbar := obj.simpleParent) != self.lastFocus.simpleParent
 			):
-				log.info("Focuse gained by rerun button")
+				log.debug("Focuse gained by rerun button")
 				panelName = actionToolbar.simpleParent.name
 				if "in Project and Libraries Tool Window" in panelName or "in Project Files Tool Window" in panelName:
-					log.info("Rerun button belongs to Find usages panel")
+					log.debug("Rerun button belongs to Find usages panel")
 					# find treeview
 					treeview = actionToolbar.simpleNext
 					while treeview and  treeview.role != TREEVIEW:
@@ -477,7 +476,7 @@ class AppModule(appModuleHandler.AppModule):
 					if not treeview:
 						log.warning("Did not find treeview in Find Usages panel")
 					else:
-						log.info("Treeview found in Find Usages panel")
+						log.debug("Treeview found in Find Usages panel")
 						activeTreeItem = treeview.activeDescendant
 						if isVisibleOnScreen(activeTreeItem):
 							clickOn(activeTreeItem)
