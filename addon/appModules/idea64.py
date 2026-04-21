@@ -509,17 +509,15 @@ def isVisibleOnScreen(obj) -> bool:
 def clickOn(obj) -> None:
 	import mouseHandler, winUser
 	oldMousePosition = tuple(winUser.getCursorPos())
-	try:
-		left, top, width, height = obj.location
-		x = left + (width // 2)
-		y = top + (height // 2)
-		winUser.setCursorPos(x, y)
-		mouseHandler.executeMouseMoveEvent(x, y)
-		mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTDOWN,0,0)
-		mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTUP,0,0)
-	finally:
-		winUser.setCursorPos(*oldMousePosition)
-		mouseHandler.executeMouseMoveEvent(*oldMousePosition)
+	left, top, width, height = obj.location
+	x = left + (width // 2)
+	y = top + (height // 2)
+	winUser.setCursorPos(x, y)
+	mouseHandler.executeMouseMoveEvent(x, y)
+	mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTDOWN,0,0)
+	mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTUP,0,0)
+	winUser.setCursorPos(*oldMousePosition)
+	mouseHandler.executeMouseMoveEvent(*oldMousePosition)
 
 class StatusBarWatcher(threading.Thread):
 	STATUS_CHANGED_TONE = 1000
