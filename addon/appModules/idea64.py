@@ -31,11 +31,15 @@ if version_year >= 2022:
 	STATUSBAR = controlTypes.Role.STATUSBAR
 	TREEVIEW = controlTypes.Role.TREEVIEW
 	BUTTON = controlTypes.Role.BUTTON
+	INVISIBLE = controlTypes.State.INVISIBLE
+	OFFSCREEN = controlTypes.State.OFFSCREEN
 else:
 	EDITABLE_TEXT = controlTypes.ROLE_EDITABLETEXT
 	STATUSBAR = controlTypes.ROLE_STATUSBAR
 	TREEVIEW = controlTypes.ROLE_TREEVIEW
 	BUTTON = controlTypes.ROLE_BUTTON
+	INVISIBLE = 4194304
+	OFFSCREEN = 1024
 
 CONF_KEY = 'intellij'
 BEEP_ON_STATUS_CHANGED_KEY = 'beepOnStatusChange'
@@ -492,8 +496,7 @@ class AppModule(appModuleHandler.AppModule):
 
 def isVisibleOnScreen(obj) -> bool:
 	states = obj.states
-	# to do: compare proper state enum
-	return not (4194304 in states or 1024 in states)
+	return not (INVISIBLE in states or OFFSCREEN in states)
 
 def clickOn(obj) -> None:
 	import mouseHandler, winUser
