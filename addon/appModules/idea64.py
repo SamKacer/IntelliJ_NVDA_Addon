@@ -24,6 +24,8 @@ import time
 from winsound import PlaySound, SND_ASYNC, SND_ALIAS
 import wx
 from core import callLater
+import mouseHandler
+import winUser
 
 # handle both pre and post 2022 controlTypes
 if version_year >= 2022:
@@ -507,17 +509,21 @@ def isVisibleOnScreen(obj) -> bool:
 	return not (INVISIBLE in states or OFFSCREEN in states)
 
 def clickOn(obj) -> None:
-	import mouseHandler, winUser
 	oldMousePosition = tuple(winUser.getCursorPos())
 	left, top, width, height = obj.location
 	x = left + (width // 2)
 	y = top + (height // 2)
+	moveMouse(x, y)
+	clickMouse()
+	moveMouse(*oldMousePosition)
+
+def moveMouse(x, y) -> None:
 	winUser.setCursorPos(x, y)
 	mouseHandler.executeMouseMoveEvent(x, y)
+
+def clickMouse() -> None:
 	mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTDOWN,0,0)
 	mouseHandler.executeMouseEvent(winUser.MOUSEEVENTF_LEFTUP,0,0)
-	winUser.setCursorPos(*oldMousePosition)
-	mouseHandler.executeMouseMoveEvent(*oldMousePosition)
 
 class StatusBarWatcher(threading.Thread):
 	STATUS_CHANGED_TONE = 1000
