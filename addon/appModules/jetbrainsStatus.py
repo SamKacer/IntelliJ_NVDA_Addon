@@ -5,7 +5,8 @@ import speech
 import tones
 from logHandler import log
 
-from jetbrainsConfig import vars
+from .jetbrainsConfig import vars
+from .jetbrainsTraversal import collectStatusBarText
 
 
 class StatusBarWatcher(threading.Thread):
@@ -28,14 +29,19 @@ class StatusBarWatcher(threading.Thread):
 
     def __init__(self, addon):
         super().__init__(daemon=True)
-        self.stopped      = False
-        self._lastText    = ""
-        self._addon       = addon
-        self._lastRefresh = time.time()
+        self.stopped         = False
+        self._lastText       = ""
+        self._addon          = addon
+        self._lastRefresh    = time.time()
+        self._pendingRefresh = False
 
-    def onExternalStatusChange(self, newText):
-        """Called from event_nameChange for zero-latency announcements."""
-        self._handleStatusText(newText)
+    def triggerRefresh(self):
+        """Signal an immediate re-collect on the next watcher cycle.
+
+        Called from event_nameChange (main NVDA thread) when a status bar
+        descendant fires nameChange. Setting a boolean flag is GIL-safe.
+        """
+        self._pendingRefresh = True
 
     def _handleStatusText(self, msg):
         if self._lastText == msg:
@@ -65,24 +71,25 @@ class StatusBarWatcher(threading.Thread):
             self.REFRESH_INTERVAL_SLOW if self._addon._eventDrivenActive
             else self.REFRESH_INTERVAL_FAST
         )
-        shouldRefresh = (now - self._lastRefresh) > refresh_interval
+        pending = self._pendingRefresh
+        self._pendingRefresh = False
+        shouldRefresh = pending or (now - self._lastRefresh) > refresh_interval
         if shouldRefresh:
             self._lastRefresh = now
         status = self._addon.getStatusBar(refresh=shouldRefresh)
         if status is None:
             return
-        # firstChild (not simpleFirstChild) detects cleared status bar —
-        # simpleFirstChild skips empty/hidden children.
-        child = status.firstChild
-        if child is not None:
-            self._handleStatusText(child.name or "")
+        # collectStatusBarText handles both classic UI (single text child) and
+        # New UI 2024.2+ (multiple independent widgets). Returns "" when cleared.
+        text = collectStatusBarText(status)
+        self._handleStatusText(text)
 
     def run(self):
         while not self.stopped:
             try:
                 self._runLoopIteration()
             except Exception as e:
-                log.warn("JetBrains status watcher error: %s" % e)
+                log.debug("JetBrains status watcher: %s" % e)
             time.sleep(
                 self.SLEEP_SLOW if self._addon._eventDrivenActive else self.SLEEP_FAST
             )

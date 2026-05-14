@@ -17,25 +17,26 @@ from editableText import EditableTextWithoutAutoSelectDetection
 from logHandler import log
 from scriptHandler import script
 
-from jetbrainsCompat import EDITABLE_TEXT, STATUSBAR
-from jetbrainsConfig import (
+from .jetbrainsCompat import EDITABLE_TEXT, STATUSBAR
+from .jetbrainsConfig import (
     vars, setGlobalVars, JetBrainsAddonSettings,
     CONF_KEY,
     SPEAK_ON_STATUS_CHANGED_KEY, INTERRUPT_SPEECH_KEY,
     BEEP_ON_BREAKPOINT_KEY, READ_AI_SUGGESTION_AUTO_KEY,
 )
-from jetbrainsTraversal import (
+from .jetbrainsTraversal import (
     findObject, _isObjectValid,
     _isLineColWidget, _isSelectedEditorTab, _isBreakpointTree,
     _filenameFromWindowTitle, _LINE_COL_RE,
+    collectStatusBarText, isDescendantOfStatusBar, _isStatusBarElement,
 )
-from jetbrainsGestures import (
+from .jetbrainsGestures import (
     TIER1_MOVE_BY_LINE, TIER1_SELECTION,
     TIER2_MOVE_BY_LINE, TIER2_SELECTION,
     TIER3_MOVE_BY_LINE,
     _ALL_MOVE_BY_LINE, _ALL_SELECTION,
 )
-from jetbrainsStatus import StatusBarWatcher
+from .jetbrainsStatus import StatusBarWatcher
 
 
 SUPPORTED_JETBRAINS_APPS = frozenset({
@@ -144,20 +145,24 @@ class AppModule(appModuleHandler.AppModule):
             clsList.insert(0, EnhancedEditableText)
 
     def event_nameChange(self, obj, nextHandler):
-        # Skip entirely until the watcher has located the status bar.
+        # Skip until the watcher has located the status bar.
         if self._statusCache is None:
             nextHandler()
             return
         try:
-            # Guard on role before touching obj.parent — EDITABLE_TEXT fires on
-            # every keystroke and can never be a STATUSBAR child.
+            # EDITABLE_TEXT fires on every keystroke — bail before any parent walk.
             if obj.role == EDITABLE_TEXT:
                 nextHandler()
                 return
-            parent = obj.parent
-            if parent is not None and parent.role == STATUSBAR:
-                self._eventDrivenActive = True
-                self._watcher.onExternalStatusChange(obj.name or "")
+            # isDescendantOfStatusBar walks up to 5 levels so it handles both
+            # classic UI (direct child) and New UI (widget nested 2-3 levels deep).
+            if not isDescendantOfStatusBar(obj):
+                nextHandler()
+                return
+            self._eventDrivenActive = True
+            # Signal the watcher thread to re-collect the full status bar text.
+            # Collecting here (main thread) would risk JAB round-trips per event.
+            self._watcher.triggerRefresh()
         except Exception:
             pass
         nextHandler()
@@ -166,13 +171,17 @@ class AppModule(appModuleHandler.AppModule):
 
     @script("Read the status bar", gesture="kb:NVDA+i", category="JetBrains IDEs")
     def script_readStatusBar(self, gesture):
-        status = self.getStatusBar()
+        status = self.getStatusBar(refresh=True)
         if status is None:
+            _logAccessibilityTree(self._getCachedForeground())
             ui.browseableMessage(isHtml=True, message=_STATUS_BAR_HELP_HTML)
             return
-        child = status.simpleFirstChild
-        if child and child.name:
-            ui.message(child.name)
+        text = collectStatusBarText(status)
+        log.info("JetBrains statusBar text: %r" % text)
+        if text:
+            ui.message(text)
+        else:
+            ui.message("Status bar is empty")
 
     @script("Read current line number", gesture="kb:nvda+alt+l", category="JetBrains IDEs")
     def script_readLineNumber(self, gesture):
@@ -256,7 +265,8 @@ class AppModule(appModuleHandler.AppModule):
         )
 
     def _getStatusBarCached(self):
-        if _isObjectValid(self._statusCache, STATUSBAR):
+        # Validate without requiring STATUSBAR role: New UI uses a PANEL element.
+        if self._statusCache is not None and _isObjectValid(self._statusCache):
             return self._statusCache
         self._statusCache = None
         return None
@@ -283,8 +293,15 @@ class AppModule(appModuleHandler.AppModule):
         fg = self._getCachedForeground()
         if fg is None:
             return None
-        result = findObject(fg, lambda o: o.role == STATUSBAR, maxDepth=4, maxNodes=100)
+        # _isStatusBarElement matches STATUSBAR role (classic UI) OR the 'Status Bar'
+        # PANEL used by New UI 2024.2+ — role alone is not sufficient there.
+        result = findObject(fg, _isStatusBarElement, maxDepth=4, maxNodes=80)
         self._statusCache = result
+        log.info("JetBrains getStatusBar: found=%s role=%s name=%r" % (
+            result is not None,
+            getattr(result, "role", None) if result is not None else None,
+            getattr(result, "name", None) if result is not None else None,
+        ))
         return result
 
     def getLineNumber(self):
@@ -356,6 +373,52 @@ class AppModule(appModuleHandler.AppModule):
         if fg is None:
             return None
         return findObject(fg, _isBreakpointTree, maxDepth=8, maxNodes=120)
+
+
+def _logAccessibilityTree(root, maxDepth=5, maxNodes=120):
+    """Dump the accessibility tree to the NVDA log for diagnostic purposes.
+
+    Called when getStatusBar() fails so we can inspect what roles/names are
+    actually present in the foreground window and adjust the search accordingly.
+    """
+    if root is None:
+        log.info("JetBrains diag: foreground object is None")
+        return
+    log.info("JetBrains diag: status bar NOT found — dumping accessibility tree (depth=%d, nodes=%d)" % (maxDepth, maxNodes))
+    from collections import deque
+    queue = deque()
+    try:
+        child = root.simpleFirstChild
+        if child:
+            queue.append((child, 1))
+    except Exception as e:
+        log.info("JetBrains diag: cannot access root children: %s" % e)
+        return
+    visited = 0
+    while queue and visited < maxNodes:
+        obj, depth = queue.popleft()
+        while obj is not None and visited < maxNodes:
+            visited += 1
+            try:
+                role = obj.role
+                name = obj.name
+                desc = obj.description
+                indent = "  " * depth
+                log.info("JetBrains diag: %s[%d] role=%s name=%r desc=%r" % (indent, depth, role, name, desc))
+            except Exception as e:
+                log.info("JetBrains diag: %s[%d] <error reading object: %s>" % ("  " * depth, depth, e))
+            if depth < maxDepth:
+                try:
+                    fc = obj.simpleFirstChild
+                    if fc is not None:
+                        queue.append((fc, depth + 1))
+                except Exception:
+                    pass
+            try:
+                obj = obj.simpleNext
+            except Exception:
+                break
+    log.info("JetBrains diag: tree dump complete (%d nodes)" % visited)
 
 
 # ── Help text (HTML) ──────────────────────────────────────────────────────────
