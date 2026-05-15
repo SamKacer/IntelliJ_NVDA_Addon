@@ -27,21 +27,12 @@ from core import callLater
 import mouseHandler
 import winUser
 
-# handle both pre and post 2022 controlTypes
-if version_year >= 2022:
-	EDITABLE_TEXT = controlTypes.Role.EDITABLETEXT
-	STATUSBAR = controlTypes.Role.STATUSBAR
-	TREEVIEW = controlTypes.Role.TREEVIEW
-	BUTTON = controlTypes.Role.BUTTON
-	INVISIBLE = controlTypes.State.INVISIBLE
-	OFFSCREEN = controlTypes.State.OFFSCREEN
-else:
-	EDITABLE_TEXT = controlTypes.ROLE_EDITABLETEXT
-	STATUSBAR = controlTypes.ROLE_STATUSBAR
-	TREEVIEW = controlTypes.ROLE_TREEVIEW
-	BUTTON = controlTypes.ROLE_BUTTON
-	INVISIBLE = 4194304
-	OFFSCREEN = 1024
+EDITABLE_TEXT = controlTypes.Role.EDITABLETEXT
+STATUSBAR = controlTypes.Role.STATUSBAR
+TREEVIEW = controlTypes.Role.TREEVIEW
+BUTTON = controlTypes.Role.BUTTON
+INVISIBLE = controlTypes.State.INVISIBLE
+OFFSCREEN = controlTypes.State.OFFSCREEN
 
 CONF_KEY = 'intellij'
 BEEP_ON_STATUS_CHANGED_KEY = 'beepOnStatusChange'
