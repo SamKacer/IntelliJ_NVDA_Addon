@@ -26,6 +26,11 @@ addon_info = {
 	"addon_description": _("Adds support for using IntelliJ with NVDA."),
 	# version
 	"addon_version": "1.6.0",
+	# Brief changelog for this version
+	# Translators: what's new content for the add-on version to be shown in the add-on store
+	"addon_changelog": _("""* Automatically select treeview in "Find Usages" panel
+* Minimum required NVDA version is 2022.1
+* Updated last tested NVDA version to 2026.1"""),
 	# Author(s)
 	"addon_author": "Samuel Kacer <samuel.kacer@gmail.con>",
 	# URL for the add-on documentation support
