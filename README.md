@@ -83,6 +83,8 @@ inside editor:
 ### Version 1.6.0
 * Automatically select treeview in "Find Usages" panel
 * Minimum required NVDA version is 2022.1
+* Updated last tested NVDA version to 2026.1
+
 ### Version 1.5.2
 * Updated instructions for enablin the status text widget
 * Change beep on breakpoint to be false by default and marked as experimental
