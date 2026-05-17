@@ -84,6 +84,7 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 
     def initOverlayClass(self):
         self._aiCheckId = 0
+        self._bpCheckId = 0
 
     def event_caretMovementFailed(self, gesture):
         PlaySound("SystemExclamation", SND_ASYNC | SND_ALIAS)
@@ -91,8 +92,11 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
     def event_caret(self):
         super().event_caret()
         if vars.beepOnBreakpoint:
-            # Delay 100 ms so IntelliJ updates the line number widget before we read it.
-            callLater(100, self._checkForBreakpoint)
+            # Debounce: only the last caret event within a rapid burst runs the
+            # breakpoint check, preventing N×heavy-JAB-walk on the main thread.
+            self._bpCheckId += 1
+            bpId = self._bpCheckId
+            callLater(100, lambda: self._checkForBreakpoint(bpId))
         if vars.readAiSuggestionAuto:
             # Debounce: skip if a newer caret event arrives within 800 ms.
             # Copilot suggestions typically appear 300-600 ms after typing stops.
@@ -107,7 +111,9 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
         if suggestion:
             ui.message(suggestion)
 
-    def _checkForBreakpoint(self):
+    def _checkForBreakpoint(self, bpId):
+        if bpId != self._bpCheckId:
+            return
         try:
             am = self.appModule
             if am is None:
@@ -220,12 +226,16 @@ class AppModule(appModuleHandler.AppModule):
             else "Disabled interrupting speech while automatically reading status bar changes"
         )
 
-    @script("Toggle beep on breakpoint", category="JetBrains IDEs")
+    @script(
+        "Toggle breakpoint detection on current line (enable only when using breakpoints)",
+        gesture="kb:NVDA+shift+b",
+        category="JetBrains IDEs",
+    )
     def script_toggleBeepOnBreakpoint(self, gesture):
         newVal = not vars.beepOnBreakpoint
         config.conf[CONF_KEY][BEEP_ON_BREAKPOINT_KEY] = newVal
         vars.beepOnBreakpoint = newVal
-        ui.message("Enabled beep on breakpoint" if newVal else "Disabled beep on breakpoint")
+        ui.message("Breakpoint detection enabled" if newVal else "Breakpoint detection disabled")
 
     @script(
         "Read current AI inline code suggestion (GitHub Copilot, JetBrains AI, Tabnine)",
