@@ -5,11 +5,21 @@ from .jetbrainsCompat import STATUSBAR, ROLE_TAB, ROLE_TREEVIEW, STATE_SELECTED
 
 # Widgets that appear in every JetBrains status bar but carry no useful info.
 _STATUS_NOISE = frozenset({
-    "utf-8", "crlf", "lf", "cr",
-    "2 spaces", "4 spaces",
-    "spaces: 2", "spaces: 4",
-    "tab size: 2", "tab size: 4",
-    "indent: 2", "indent: 4",
+    # Line endings
+    "crlf", "lf", "cr",
+    # Indentation
+    "2 spaces", "4 spaces", "8 spaces",
+    "spaces: 2", "spaces: 4", "spaces: 8",
+    "tab size: 2", "tab size: 4", "tab size: 8",
+    "indent: 2", "indent: 4", "indent: 8",
+    "tabs",
+    # Encodings — all variants JAB may surface
+    "utf-8", "utf-16", "utf-16 le", "utf-16 be",
+    "us-ascii", "ascii", "iso-8859-1", "latin-1", "windows-1252",
+    # VCS noise when no repository is configured
+    "no vcs", "no vcs root",
+    # Power save mode indicator
+    "power save mode",
 })
 
 # Accessible name used by JAB for the status bar panel in New UI (2024.2+).

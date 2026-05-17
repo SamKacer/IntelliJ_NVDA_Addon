@@ -25,7 +25,7 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description": _("Adds NVDA accessibility support for JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, GoLand, Rider, CLion). Based on the original IntelliJ NVDA Addon by Samuel Kacer."),
 	# version
-	"addon_version": "1.0",
+	"addon_version": "1.2.0",
 	# Author(s)
 	"addon_author": "Samuel Kacer <samuel.kacer@gmail.com> (original), Community Fork",
 	# URL for the add-on documentation support

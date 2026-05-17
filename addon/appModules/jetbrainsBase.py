@@ -109,10 +109,10 @@ class EnhancedEditableText(EditableTextWithoutAutoSelectDetection):
 
     def _checkForBreakpoint(self):
         try:
-            fg = api.getForegroundObject()
-            if fg is None or fg.appModule is None:
+            am = self.appModule
+            if am is None:
                 return
-            if fg.appModule.hasBreakpointOnCurrentLine():
+            if am.hasBreakpointOnCurrentLine():
                 tones.beep(300, 150)
         except Exception:
             pass
@@ -131,8 +131,9 @@ class AppModule(appModuleHandler.AppModule):
         self._lastBpLine         = None
         # Foreground cache (200 ms TTL) — reduces COM round-trips; safe because
         # focus changes are user-initiated and cannot occur faster than ~200 ms.
-        self._lastForeground     = None
-        self._lastForegroundTime = 0.0
+        self._lastForeground      = None
+        self._lastForegroundTime  = 0.0
+        self._lastNameChangeTrigger = 0.0
         self._watcher = StatusBarWatcher(self)
         self._watcher.start()
 
@@ -154,12 +155,20 @@ class AppModule(appModuleHandler.AppModule):
             if obj.role == EDITABLE_TEXT:
                 nextHandler()
                 return
+            # Skip the parent-chain walk when a refresh was triggered within 100 ms.
+            # isDescendantOfStatusBar costs up to 5 COM round-trips per call; skipping
+            # it during event bursts (indexing, building) keeps the main thread light.
+            now = time.time()
+            if (now - self._lastNameChangeTrigger) < 0.10:
+                nextHandler()
+                return
             # isDescendantOfStatusBar walks up to 5 levels so it handles both
             # classic UI (direct child) and New UI (widget nested 2-3 levels deep).
             if not isDescendantOfStatusBar(obj):
                 nextHandler()
                 return
             self._eventDrivenActive = True
+            self._lastNameChangeTrigger = now
             # Signal the watcher thread to re-collect the full status bar text.
             # Collecting here (main thread) would risk JAB round-trips per event.
             self._watcher.triggerRefresh()
@@ -242,18 +251,18 @@ class AppModule(appModuleHandler.AppModule):
 
     def _getCachedForeground(self):
         now = time.time()
-        if (
-            self._lastForeground is not None
-            and (now - self._lastForegroundTime) < 0.2
-            and _isObjectValid(self._lastForeground)
-        ):
-            return self._lastForeground
+        age = now - self._lastForegroundTime
+        if self._lastForeground is not None and age < 0.2:
+            # Skip COM validation for entries younger than 50 ms; only validate
+            # when approaching the 200 ms TTL to catch stale references cheaply.
+            if age < 0.05 or _isObjectValid(self._lastForeground):
+                return self._lastForeground
         try:
             fg = api.getForegroundObject()
         except Exception:
             return None
-        self._lastForeground     = fg
-        self._lastForegroundTime = now
+        self._lastForeground      = fg
+        self._lastForegroundTime  = now
         return fg
 
     def _isForegroundOurs(self):
@@ -297,7 +306,7 @@ class AppModule(appModuleHandler.AppModule):
         # PANEL used by New UI 2024.2+ — role alone is not sufficient there.
         result = findObject(fg, _isStatusBarElement, maxDepth=4, maxNodes=80)
         self._statusCache = result
-        log.info("JetBrains getStatusBar: found=%s role=%s name=%r" % (
+        log.debug("JetBrains getStatusBar: found=%s role=%s name=%r" % (
             result is not None,
             getattr(result, "role", None) if result is not None else None,
             getattr(result, "name", None) if result is not None else None,
